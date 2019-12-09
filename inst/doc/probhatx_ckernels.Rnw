@@ -1,0 +1,38 @@
+%\VignetteIndexEntry{Kernel Reference Sheet}
+\documentclass{article}
+\usepackage[a4paper,landscape,top=1.5cm,bottom=1.5cm,left=1.0cm,right=1.5cm]{geometry}
+\usepackage{parskip,verbatim,amsmath,amssymb,color}
+\usepackage[nogin]{Sweave}
+\pagestyle{myheadings}
+\setlength{\parskip}{0.28cm}
+\DefineVerbatimEnvironment{Sinput}{Verbatim}{xleftmargin=0.75em, formatcom=\color{rin}}
+\DefineVerbatimEnvironment{Soutput}{Verbatim}{xleftmargin=0.75em,formatcom=\color{rout}}
+\DefineVerbatimEnvironment{Serror}{Verbatim}{xleftmargin=0.75em,formatcom=\color{rerr}}
+\definecolor{rin}{rgb}{0, 0, 0.32}
+\definecolor{rout}{rgb}{0, 0.14, 0}
+\definecolor{rerr}{rgb}{0.5, 0.025, 0}
+\SweaveOpts{keep.source=TRUE}
+\SweaveOpts{eps=FALSE}
+\SweaveOpts{prefix.string=temp-probhat}
+\begin{document}
+
+<<echo=false>>=
+options(SweaveHooks=list(fig=function()
+par(mar=c(4.1, 4.1, 2.6, 1.6), cex=0.7, cex.main=1)))
+@
+
+\thispagestyle {empty}
+\section* {\vspace {-1cm} \center Kernel Reference Sheet}
+
+\vspace {-1cm}
+\hspace {1.5cm}
+(R + probhat)
+
+\begin {center}
+<<echo=FALSE, fig=TRUE, width=10.25, height=6.75>>=
+library (probhat)
+kernel.array ()
+@
+\end {center}
+
+\end{document}

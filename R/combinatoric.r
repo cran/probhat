@@ -1,3 +1,16 @@
+#probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
+#Copyright (C), Abby Spurdle, 2019
+
+#This program is distributed without any warranty.
+
+#This program is free software.
+#You can modify it and/or redistribute it, under the terms of:
+#The GNU General Public License, version 2, or (at your option) any later version.
+
+#You should have received a copy of this license, with R.
+#Also, this license should be available at:
+#https://cran.r-project.org/web/licenses/GPL-2
+
 .binary.seq = function (m, n)
 {	rep.vector = round (2 ^ (0:(m - 1) ) )
 	verts = matrix (0, nrow=n, ncol=m)
@@ -16,13 +29,11 @@
     sign
 }
 
-comb.prob = function (cdf.f, a, b)
-{	if (inherits (cdf.f, "npcdfuv") )
-		cdf.f (b) - cdf.f (a)
-	else if (inherits (cdf.f, "npcdfmv") )
-		.comb.prob (cdf.f, a, b)
+probmv = function (F, a, b)
+{	if (inherits (F, "cdfmv") )
+		.comb.prob (F, a, b)
 	else
-		stop ("needs npcdfuv or npcdfmv object")
+		stop ("needs cdfmv object")
 }
 
 .comb.prob = function (F, a, b)
@@ -30,14 +41,14 @@ comb.prob = function (cdf.f, a, b)
     if (has.matrix.args)
     {   m = ncol (a)
         if (nrow (a) != nrow (b) )
-            stop ("nrow(a) must equal nrow(b)")
+            stop ("nrow (a) needs to equal nrow (b)")
         if (ncol (a) != ncol (b) )
-            stop ("ncol(a) must equal ncol(b)")
+            stop ("ncol (a) needs to equal ncol (b)")
     }
     else
     {   m = length (a)
         if (length (a) != length (b) )
-            stop ("length(a) must equal length(b)")
+            stop ("length (a) needs to equal length (b)")
     }
     nF = as.integer (round (2 ^ m) )
     binary = .binary.seq (m, nF)

@@ -1,66 +1,86 @@
-.contour = function (x, y, z, xlab="x", ylab="y", ...)
-	contour (x, y, z, xlab=xlab, ylab=ylab, ...)
+#probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
+#Copyright (C), Abby Spurdle, 2019
 
-plot.nppdfmv = function (x, use.plot3d=FALSE, xlab, ylab, npoints=30, ..., all=FALSE)
-{	nppdfmv.f = x
+#This program is distributed without any warranty.
 
-	. = attributes (nppdfmv.f)
-	n = .$n
-	if (.$m != 2)
-		stop ("can only plot nppdfmv if bivariate")
-	if (all)
-	{	par (mfrow=c (2, 2) )
-        p0 = par (mar=c (2, 2.5, 1, 0.175) )
-        npcdfmv.f = function (x) {.npcdfmv.eval (x)}
-		attributes (npcdfmv.f) = attributes (nppdfmv.f)
-        plot (nppdfmv.f, FALSE, xlab="", ylab="", npoints, drawlabels=FALSE, ...)
-        plot (nppdfmv.f, TRUE, xlab="", ylab="", npoints, ...)
-        plot (npcdfmv.f, FALSE, xlab="", ylab="", npoints, drawlabels=FALSE, ...)
-        plot (npcdfmv.f, TRUE, xlab="", ylab="", npoints, ...)
-        par (p0)
-	}
-	else
-	{	if (missing (xlab) )
-			xlab = .$varnames [1]
-		if (missing (ylab) )
-			ylab = .$varnames [2]
-		xrng = range (.$x [,1]) + c (-0.5, 0.5) * .$bw [1]
-		yrng = range (.$x [,2]) + c (-0.5, 0.5) * .$bw [2]
-		x = seq (xrng [1], xrng [2], length.out=npoints)
-		y = seq (yrng [1], yrng [2], length.out=npoints)
-		z = outer (x, y, .mix, nppdfmv.f)
-		if (use.plot3d)
-			plot3d.surf (x, y, z, xlab=xlab, ylab=ylab, ...)
-		else
-			.contour (x, y, z, xlab, ylab, ...)
-	}
-	
+#This program is free software.
+#You can modify it and/or redistribute it, under the terms of:
+#The GNU General Public License, version 2, or (at your option) any later version.
+
+#You should have received a copy of this license, with R.
+#Also, this license should be available at:
+#https://cran.r-project.org/web/licenses/GPL-2
+
+.test.bv = function (M)
+{	if (M != 2)
+		stop ("can only plot multivariate models, if bivariate")
 }
 
-plot.npcdfmv = function (x, use.plot3d=FALSE, xlab, ylab, npoints=30, ...)
-{	npcdfmv.f = x
-
-	. = attributes (npcdfmv.f)
-	n = .$n
-	if (.$m != 2)
-		stop ("can only plot npcdfmv if bivariate")
+.plot.cksmv = function (f, use.plot3d=FALSE,
+	main, xlab, ylab,
+	npoints=30, xlim, ylim, ...,
+	all=FALSE, contrast=-0.8, cex=0.65)
+{	. = attributes (f)
+	Jx = f %$% "m" - 1
+	Jy = Jx + 1
+	if (missing (main) )
+		main = ""
 	if (missing (xlab) )
-		xlab = .$varnames [1]
+		xlab = (f %$% "variable.names") [Jx]
 	if (missing (ylab) )
-			ylab = .$varnames [2]
-	xrng = range (.$x [,1]) + c (-0.5, 0.5) * .$bw [1]
-	yrng = range (.$x [,2]) + c (-0.5, 0.5) * .$bw [2]
-	x = seq (xrng [1], xrng [2], length.out=npoints)
-	y = seq (yrng [1], yrng [2], length.out=npoints)
-	z = outer (x, y, .mix, npcdfmv.f)
-	if (use.plot3d)
-		plot3d.surf (x, y, z, xlab=xlab, ylab=ylab, ...)
+		ylab = (f %$% "variable.names") [Jy]
+	if (all)
+	{	f1 = .uv.from.mv.cks (f, Jx)
+		f2 = .uv.from.mv.cks (f, Jy)
+		mar = c (4.75, 4.75, 0.75, 0.75)
+		p0 = par (cex=cex, mar=mar)
+		layout (matrix (c (1, 3, 4, 2, 5, 5), 3, 2),, c (1, 0.5, 0.5) )
+		.plot.cksmv (f, FALSE, main, xlab, ylab, contrast=contrast)
+		.plot.cksmv (f, TRUE, main, xlab, ylab, npoints)
+		p1 = par (mar = c (2.75, 2.75, 0.75, 0.75), mgp = c (0.5, 0, 0) )
+		plot (f1, axis.ticks=FALSE)
+		plot (f2, axis.ticks=FALSE)
+		par (p1)
+		.plot.points (f %$% "is.weighted", (f %$% "x") [,Jx], (f %$% "x") [,Jy], f %$% "w", xlab, ylab)
+		par (p0)
+	}
 	else
-		.contour (x, y, z, xlab, ylab, ...)
+	{	if (missing (xlim) )
+			xlim = .$xlim [1,]
+		if (missing (ylim) )
+			ylim = .$xlim [2,]
+		x = seq (xlim [1], xlim [2], length.out=npoints)
+		y = seq (ylim [1], ylim [2], length.out=npoints)
+		z = outer (x, y, .outer.cbind.ext, f)
+		if (use.plot3d)
+			plot3d.surface (,,z, main=main, xlab=xlab, ylab=ylab, ...)
+		else
+			plot2d.contour (x, y, z, main=main, xlab=xlab, ylab=ylab, contrast=contrast, ...)
+	}
 }
 
-plot.chained.npcdfmv.inverse = function (x, ...)
-	stop ("can't plot chained.npcdfmv.inverse")
+plot.pdfmv.cks = function (x, use.plot3d=FALSE, main, xlab, ylab, npoints=30, ..., all=FALSE)
+{	.test.bv (x %$% "m")
+	.plot.cksmv (x, use.plot3d, main, xlab, ylab, npoints, ..., all=all)
+}
 
-.mix = function (x, y, f)
+plot.cdfmv.cks = function (x, use.plot3d=FALSE, main, xlab, ylab, npoints=30, ..., all=FALSE)
+{	.test.bv (x %$% "m")
+	.plot.cksmv (x, use.plot3d, main, xlab, ylab, npoints, ..., all=all)
+}
+
+plot.pdfmvc.cks = function (x, use.plot3d=FALSE, main, xlab, ylab, npoints=30, ...)
+{	.test.bv (x %$% "M")
+	.plot.cksmv (x, use.plot3d, main, xlab, ylab, npoints, ..., all=FALSE)
+}
+
+plot.cdfmvc.cks = function (x, use.plot3d=FALSE, main, xlab, ylab, npoints=30, ...)
+{	.test.bv (x %$% "M")
+	.plot.cksmv (x, use.plot3d, main, xlab, ylab, npoints, ..., all=FALSE)
+}
+
+plot.chqf = function (x, ...)
+	stop ("can't plot chained quantile function")
+
+.outer.cbind.ext = function (x, y, f)
 	f (cbind (x, y) )

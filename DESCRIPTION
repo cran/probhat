@@ -1,16 +1,16 @@
 Package: probhat
-Title: Generalized Kernel Smoothing
-Version: 0.1.1
-Date: 2019-02-28
+Title: Multivariate Generalized Kernel Smoothing and Related
+        Statistical Methods
+Version: 0.2.0
+Date: 2019-12-10
 License: GPL (>= 2)
 Maintainer: Abby Spurdle <spurdle.a@gmail.com>
 Author: Abby Spurdle
-URL: https://sites.google.com/site/asrpws
-Description: Computes nonparametric probability distributions (probability density functions, cumulative distribution functions and quantile functions) using kernel smoothing. Supports univariate, multivariate and conditional distributions, and weighted data (possibly useful mixed with fuzzy clustering or frequency data). Also, supports empirical continuous cumulative distribution functions and their inverses, and random number generation.
-Depends: graphics, stats
-Imports: barsurf
-Suggests: intoo, bivariate, mvtnorm, fclust, moments, scatterplot3d
+URL: https://sites.google.com/site/spurdlea/r
+Description: Constructs, plots and evaluates probability distributions (probability mass/density functions, cumulative distribution functions and quantile functions) with continuous kernel smoothing, and to a lesser extent, discrete kernel smoothing. Supports univariate, multivariate and conditional distributions, including multivariate-conditional distributions. Also, supports other probability distributions (categorical, frequency and empirical-like) and weighted data, which is possibly useful mixed with fuzzy clustering. Furthermore, there are extensions for computing multivariate probabilities and multivariate random numbers, and for parameter and mode estimation.
+Imports: intoo, barsurf, kubik
+Suggests: bivariate, fclust, scatterplot3d, MASS
 NeedsCompilation: no
-Packaged: 2019-02-27 21:26:44 UTC; Student9
+Packaged: 2019-12-09 17:32:56 UTC; spurdle
 Repository: CRAN
-Date/Publication: 2019-03-05 22:20:04 UTC
+Date/Publication: 2019-12-09 20:40:05 UTC

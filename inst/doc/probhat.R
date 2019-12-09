@@ -1,7 +1,7 @@
 ### R code from vignette source 'probhat.Rnw'
 
 ###################################################
-### code chunk number 1: probhat.Rnw:34-38
+### code chunk number 1: probhat.Rnw:35-39
 ###################################################
 options(continue=" ")
 options(SweaveHooks=list(fig=function()
@@ -10,442 +10,494 @@ set.seed (1)
 
 
 ###################################################
-### code chunk number 2: probhat.Rnw:89-93
+### code chunk number 2: probhat.Rnw:198-201
 ###################################################
 library (probhat)
 library (fclust)
-library (moments)
 library (scatterplot3d)
 
 
 ###################################################
-### code chunk number 3: probhat.Rnw:100-102
+### code chunk number 3: probhat.Rnw:208-209
 ###################################################
-data (trees)
-data (unemployment)
+use.ph.theme ("green")
 
 
 ###################################################
-### code chunk number 4: probhat.Rnw:105-113
+### code chunk number 4: probhat.Rnw:214-215
 ###################################################
-#refer to datasets for a description of these variables
-#(and converting to metric)
-# -> m
-Height = 0.3048 * trees$Height
-# -> cm
-Girth = 2.54 * trees$Girth
-# -> m^3
-Volume = 0.0283168 * trees$Volume
+data.prep ()
 
 
 ###################################################
-### code chunk number 5: probhat.Rnw:116-121
+### code chunk number 5: probhat.Rnw:227-228
 ###################################################
-#refer to fclust for a description of these variables
-#note that this data set contains three variables
-#(however, I'm only using two variables)
-un.rate = unemployment$Total.Rate
-lt.rate = unemployment$LongTerm.Share
+fh = pmfuv.dks (traffic.x, traffic.h, bw=23, lower=0)
 
 
 ###################################################
-### code chunk number 6: probhat.Rnw:125-128
-###################################################
-trees.2.2 = cbind (Height, Volume)
-trees.2.3 = cbind (Height, Girth, Volume)
-unemployment.2 = cbind (un.rate, lt.rate)
-
-
-###################################################
-### code chunk number 7: probhat.Rnw:166-167
-###################################################
-f = nppdfuv (Height)
-
-
-###################################################
-### code chunk number 8: probhat.Rnw:172-173
+### code chunk number 6: probhat.Rnw:232-233
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
-plot (f, TRUE)
+plot (fh, TRUE)
 
 
 ###################################################
-### code chunk number 9: probhat.Rnw:178-179
+### code chunk number 7: probhat.Rnw:243-244
 ###################################################
-f (20)
+fh (10)
 
 
 ###################################################
-### code chunk number 10: probhat.Rnw:185-188
+### code chunk number 8: probhat.Rnw:249-251
 ###################################################
-npmean (f)
-mode.Height = npmode (f)
-mode.Height
+Fh = cdfuv.dks (traffic.x, traffic.h, bw=23, lower=0)
+Fh.inv = qfuv.dks (traffic.x, traffic.h, bw=23, lower=0)
 
 
 ###################################################
-### code chunk number 11: probhat.Rnw:192-194
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-plot (f)
-abline (v=mode.Height, lty=2)
-
-
-###################################################
-### code chunk number 12: probhat.Rnw:205-207
+### code chunk number 9: probhat.Rnw:255-256
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
-F = npcdfuv (Height)
-plot (F, TRUE)
+plot (Fh, TRUE)
 
 
 ###################################################
-### code chunk number 13: probhat.Rnw:215-216
-###################################################
-F (22) - F (20)
-
-
-###################################################
-### code chunk number 14: probhat.Rnw:223-225
+### code chunk number 10: probhat.Rnw:259-260
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
-F.inv = npcdfuv.inverse (Height)
-plot (F.inv)
+plot (Fh.inv)
 
 
 ###################################################
-### code chunk number 15: probhat.Rnw:232-236
+### code chunk number 11: probhat.Rnw:279-280
 ###################################################
-#median
-F.inv (0.5)
-#5 number summary
-F.inv (c (0, 0.25, 0.5, 0.75, 1) )
+fh = pdfuv.cks (Height)
 
 
 ###################################################
-### code chunk number 16: probhat.Rnw:240-241
-###################################################
-F (F.inv (0.5) )
-
-
-###################################################
-### code chunk number 17: probhat.Rnw:260-262
-###################################################
-bvf = nppdfmv (trees.2.2)
-bvF = npcdfmv (trees.2.2)
-
-
-###################################################
-### code chunk number 18: probhat.Rnw:268-269
+### code chunk number 12: probhat.Rnw:284-285
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
-plot (bvf)
+plot (fh, TRUE)
 
 
 ###################################################
-### code chunk number 19: probhat.Rnw:272-273
+### code chunk number 13: probhat.Rnw:293-294
 ###################################################
-getOption("SweaveHooks")[["fig"]]()
-plot (bvf, TRUE)
+fh (22)
 
 
 ###################################################
-### code chunk number 20: probhat.Rnw:276-277
+### code chunk number 14: probhat.Rnw:299-301
 ###################################################
-getOption("SweaveHooks")[["fig"]]()
-plot (bvF)
+Fh = cdfuv.cks (Height)
+Fh.inv = qfuv.cks (Height)
 
 
 ###################################################
-### code chunk number 21: probhat.Rnw:280-281
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-plot (bvF, TRUE)
-
-
-###################################################
-### code chunk number 22: probhat.Rnw:286-287
-###################################################
-#plot (f, all=TRUE)
-
-
-###################################################
-### code chunk number 23: probhat.Rnw:291-292
-###################################################
-bvf (c (20, 0.5) )
-
-
-###################################################
-### code chunk number 24: probhat.Rnw:318-320
-###################################################
-mvf = nppdfmv (trees.2.3)
-mvF = npcdfmv (trees.2.3)
-
-
-###################################################
-### code chunk number 25: probhat.Rnw:355-362
-###################################################
-median.Height = median (Height)
-median.Girth = median (Girth)
-cf = nppdfc (Volume ~ c (Height=median.Height, Girth=median.Girth), trees.2.3)
-cF = npcdfc (Volume ~ c (Height=median.Height, Girth=median.Girth), trees.2.3)
-cF.inv = npcdfc.inverse (
-    Volume ~ c (Height=median.Height, Girth=median.Girth),
-    trees.2.3)
-
-
-###################################################
-### code chunk number 26: probhat.Rnw:366-367
+### code chunk number 15: probhat.Rnw:305-306
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
-plot (cf)
+plot (Fh, TRUE)
 
 
 ###################################################
-### code chunk number 27: probhat.Rnw:377-379
+### code chunk number 16: probhat.Rnw:309-310
 ###################################################
-w = FKM.gk (unemployment.2, k=3, seed=2)$U [,1]
+getOption("SweaveHooks")[["fig"]]()
+plot (Fh.inv)
+
+
+###################################################
+### code chunk number 17: probhat.Rnw:318-320
+###################################################
+p1 = 0.5
+p2 = Fh (Fh.inv (p1) )
+
+
+###################################################
+### code chunk number 18: probhat.Rnw:323-325
+###################################################
+p1 == p2
+abs (p1 - p2)
+
+
+###################################################
+### code chunk number 19: probhat.Rnw:335-336
+###################################################
+fh = pdfmv.cks (trees [,2:3])
+
+
+###################################################
+### code chunk number 20: probhat.Rnw:339-340
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+plot (fh, all=TRUE)
+
+
+###################################################
+### code chunk number 21: probhat.Rnw:346-347
+###################################################
+fh (c (22, 0.8) )
+
+
+###################################################
+### code chunk number 22: probhat.Rnw:351-352
+###################################################
+Fh = cdfmv.cks (trees [,2:3])
+
+
+###################################################
+### code chunk number 23: probhat.Rnw:356-357
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+plot (Fh, all=TRUE)
+
+
+###################################################
+### code chunk number 24: probhat.Rnw:368-370
+###################################################
+conditions = c (Girth=30, Height=22)
+cfh = pdfc.cks (trees, conditions=conditions)
+
+
+###################################################
+### code chunk number 25: probhat.Rnw:374-375
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+plot (cfh)
+
+
+###################################################
+### code chunk number 26: probhat.Rnw:380-382
+###################################################
+#density of volume (volume=0.85), given girth=30 and height=22
+cfh (0.85)
+
+
+###################################################
+### code chunk number 27: probhat.Rnw:396-398
+###################################################
+conditions = c (lat=-20, long=180)
+cfh = pdfmvc.cks (quakes, conditions=conditions)
+
+
+###################################################
+### code chunk number 28: probhat.Rnw:402-403
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+plot (cfh, xlim = c (0, 800) )
+
+
+###################################################
+### code chunk number 29: probhat.Rnw:405-406
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+plot (cfh, TRUE, xlim = c (0, 800) )
+
+
+###################################################
+### code chunk number 30: probhat.Rnw:416-420
+###################################################
+cfh.AA = pdfmvc.cks (quakes, conditions = c (lat=-30, long=170) )
+cfh.AB = pdfmvc.cks (quakes, conditions = c (lat=-30, long=180) )
+cfh.BA = pdfmvc.cks (quakes, conditions = c (lat=-20, long=170) )
+cfh.BB = cfh
+
+
+###################################################
+### code chunk number 31: probhat.Rnw:424-428
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+plot_2x2 (cfh.AA, cfh.AB, cfh.BA, cfh.BB,
+    "lat=-30, long=170", "lat=-30, long=180",
+    "lat=-20, long=170", "lat=-20, long=180",
+    xlim = c (0, 800) )
+
+
+###################################################
+### code chunk number 32: probhat.Rnw:434-436
+###################################################
+cfh.A = pdfmvc.cks (quakes [,-4], conditions = c (depth=100) )
+cfh.B = pdfmvc.cks (quakes [,-4], conditions = c (depth=500) )
+
+
+###################################################
+### code chunk number 33: probhat.Rnw:440-441
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+plot (cfh.A, main="depth=100")
+
+
+###################################################
+### code chunk number 34: probhat.Rnw:443-444
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+plot (cfh.B, main="depth=500")
+
+
+###################################################
+### code chunk number 35: probhat.Rnw:457-458
+###################################################
+fh = pmfuv.cat (region)
+
+
+###################################################
+### code chunk number 36: probhat.Rnw:462-463
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+plot (fh)
+
+
+###################################################
+### code chunk number 37: probhat.Rnw:468-470
+###################################################
+fh (1)
+fh ("North Central")
+
+
+###################################################
+### code chunk number 38: probhat.Rnw:484-486
+###################################################
+mean.Sepal.Length = mean (iris.Sepal.Length)
+fh = pmfc.cat.cks (iris.Species, iris.Sepal.Length, at=mean.Sepal.Length)
+
+
+###################################################
+### code chunk number 39: probhat.Rnw:490-491
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+plot (fh)
+
+
+###################################################
+### code chunk number 40: probhat.Rnw:504-505
+###################################################
+Fh = cdf.el (Height)
+
+
+###################################################
+### code chunk number 41: probhat.Rnw:509-510
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+plot (Fh)
+
+
+###################################################
+### code chunk number 42: probhat.Rnw:516-517
+###################################################
+Fh.inv = qf.el (Height)
+
+
+###################################################
+### code chunk number 43: probhat.Rnw:521-522
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+plot (Fh.inv)
+
+
+###################################################
+### code chunk number 44: probhat.Rnw:550-551
+###################################################
+cs = categorical.set (pdfuv.cks, iris.Sepal.Length, group.by=iris.Species)
+
+
+###################################################
+### code chunk number 45: probhat.Rnw:555-556
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+plot (cs)
+
+
+###################################################
+### code chunk number 46: probhat.Rnw:561-563
+###################################################
+conditions = cbind (Height = c (20, 24, 28) )
+cond.set = conditional.set (pdfc.cks, trees [,2:3], group.by=conditions)
+
+
+###################################################
+### code chunk number 47: probhat.Rnw:567-568
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+plot (cond.set)
+
+
+###################################################
+### code chunk number 48: probhat.Rnw:578-579
+###################################################
+ms = marginal.set (qf.el, trees)
+
+
+###################################################
+### code chunk number 49: probhat.Rnw:583-584
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+plot (ms)
+
+
+###################################################
+### code chunk number 50: probhat.Rnw:596-598
+###################################################
+#multivariate cdf
+Fh = cdfmv.cks (trees)
+
+
+###################################################
+### code chunk number 51: probhat.Rnw:601-604
+###################################################
+#approximate first and third quartiles
+a = c (28, 22, 0.55)
+b = c (38, 24, 1.05)
+
+
+###################################################
+### code chunk number 52: probhat.Rnw:607-608
+###################################################
+cbind (lower=a, upper=b)
+
+
+###################################################
+### code chunk number 53: probhat.Rnw:611-613
+###################################################
+#multivariate probability
+probmv (Fh, a, b)
+
+
+###################################################
+### code chunk number 54: probhat.Rnw:642-644
+###################################################
+chF.inv = chqf.cks (trees)
+synthetic.data = ph.rng (chF.inv, 31)
+
+
+###################################################
+### code chunk number 55: probhat.Rnw:647-655
+###################################################
+#convenience function
+plot.trees.data = function (x, main)
+{   Height = x [,"Height"]
+    Girth = x [,"Girth"]
+    Volume = x [,"Volume"]
+    scatterplot3d (Height, Girth, Volume,
+        main=main, type="h", angle=112.5, pch=16)
+}
+
+
+###################################################
+### code chunk number 56: probhat.Rnw:659-661
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+#original data
+plot.trees.data (trees, "original data")
+
+
+###################################################
+### code chunk number 57: probhat.Rnw:664-666
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+#synthetic data
+plot.trees.data (synthetic.data, "synthetic data")
+
+
+###################################################
+### code chunk number 58: probhat.Rnw:681-686
+###################################################
+#conditional distributions
+conditions = c (Height=24)
+cfh = pdfc.cks (trees [,2:3], conditions=conditions)
+cFh = cdfc.cks (trees [,2:3], conditions=conditions)
+cFh.inv = qfc.cks (trees [,2:3], conditions=conditions)
+
+
+###################################################
+### code chunk number 59: probhat.Rnw:689-693
+###################################################
+#mean, median and mode
+mean.Volume = ph.mean (cFh)
+median.Volume = cFh.inv (0.5)
+mode.Volume = ph.mode (cfh)
+
+
+###################################################
+### code chunk number 60: probhat.Rnw:696-698
+###################################################
+cbind (statistic = c ("mean", "median", "mode"),
+    value = c (mean.Volume, median.Volume, mode.Volume) )
+
+
+###################################################
+### code chunk number 61: probhat.Rnw:702-705
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+plot (cfh)
+abline (v = c (mean.Volume, mode.Volume) )
+abline (v=median.Volume, lty=2)
+
+
+###################################################
+### code chunk number 62: probhat.Rnw:709-713
+###################################################
+#and just as an example, the variance, skewness and kurtosis...
+ph.var (cFh)
+ph.skewness (cFh)
+ph.kurtosis (cFh)
+
+
+###################################################
+### code chunk number 63: probhat.Rnw:1028-1029
+###################################################
+data.prep (eval=FALSE, echo=TRUE)
+
+
+###################################################
+### code chunk number 64: probhat.Rnw:1046-1047
+###################################################
+membership = FKM.gk (unemployment, k=3, seed=2)$U
+
+
+###################################################
+### code chunk number 65: probhat.Rnw:1052-1054
+###################################################
+w = membership [,1]
 w = w / sum (w)
 
 
 ###################################################
-### code chunk number 28: probhat.Rnw:388-390
+### code chunk number 66: probhat.Rnw:1059-1060
+###################################################
+wfh.1 = pdfmv.cks (unemployment, w=w)
+
+
+###################################################
+### code chunk number 67: probhat.Rnw:1064-1065
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
-wf = nppdfmv (unemployment.2, w=w)
-plot (wf)
+plot (wfh.1)
 
 
 ###################################################
-### code chunk number 29: probhat.Rnw:393-394
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-plot (wf, TRUE)
-
-
-###################################################
-### code chunk number 30: probhat.Rnw:421-429
-###################################################
-#probability that:
-#(   20  <= Height <= 30,
-#    20  <= Girth  <= 24,
-#    0.2 <= Volume <= 0.8
-#)
-a = c (20, 20, 0.2)
-b = c (30, 24, 0.8)
-comb.prob (mvF, a, b)
-
-
-###################################################
-### code chunk number 31: probhat.Rnw:440-442
-###################################################
-chained.inv = chained.npcdfmv.inverse (trees.2.3)
-trees.2.rs = nprng (chained.inv, 31)
-
-
-###################################################
-### code chunk number 32: probhat.Rnw:445-448
-###################################################
-Height.rs = trees.2.rs [,"Height"]
-Girth.rs = trees.2.rs [,"Girth"]
-Volume.rs = trees.2.rs [,"Volume"]
-
-
-###################################################
-### code chunk number 33: probhat.Rnw:459-462
-###################################################
-#probability that volume is between 0.2 and 0.8 cubic meters
-#given median height and median girth
-cF (0.8) - cF (0.2)
-
-
-###################################################
-### code chunk number 34: probhat.Rnw:465-468
-###################################################
-#median of volume in cubic meters
-#given median height and median girth
-cF.inv (0.5)
-
-
-###################################################
-### code chunk number 35: probhat.Rnw:472-475
-###################################################
-#mean of volume in cubic meters
-#given median height and median girth
-npmean (cf)
-
-
-###################################################
-### code chunk number 36: probhat.Rnw:478-482
-###################################################
-#mode of volume in cubic meters
-#given median height and median girth
-mode.Volume.c = npmode (cf)
-mode.Volume.c
-
-
-###################################################
-### code chunk number 37: probhat.Rnw:486-488
+### code chunk number 68: probhat.Rnw:1068-1070
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
-plot (cf)
-abline (v=mode.Volume.c, lty=2)
+k = 1 - w / max (w)
+plot (unemployment, pch=16, col=rgb (k, k, k) )
 
 
 ###################################################
-### code chunk number 38: probhat.Rnw:496-497
+### code chunk number 69: probhat.Rnw:1075-1079
 ###################################################
-x = seq (-1, 1, length.out=200)
+w = membership [,2]
+wfh.2 = pdfmv.cks (unemployment, w = w / sum (w) )
+w = membership [,3]
+wfh.3 = pdfmv.cks (unemployment, w = w / sum (w) )
 
 
 ###################################################
-### code chunk number 39: probhat.Rnw:501-504
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-y = sbc.pdf (x)
-plot (x, y, type="l")
-abline (v=c (-0.5, 0.5), h=c (0.5), lty=2)
-
-
-###################################################
-### code chunk number 40: probhat.Rnw:509-511
+### code chunk number 70: probhat.Rnw:1084-1085
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
-y = sbc.cdf (x)
-plot (x, y, type="l")
-
-
-###################################################
-### code chunk number 41: probhat.Rnw:537-538
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-plot (marginal (mvf), 3, 1, TRUE)
-
-
-###################################################
-### code chunk number 42: probhat.Rnw:560-562
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-F = eccdf (Height)
-plot (F, TRUE)
-
-
-###################################################
-### code chunk number 43: probhat.Rnw:568-570
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-F.inv = eccdf.inverse (Height)
-plot (F.inv, TRUE)
-
-
-###################################################
-### code chunk number 44: probhat.Rnw:575-579
-###################################################
-#median
-F.inv (0.5)
-#5 number summary
-F.inv (c (0, 0.25, 0.5, 0.75, 1) )
-
-
-###################################################
-### code chunk number 45: probhat.Rnw:592-597
-###################################################
-head (trees.2.3, 3)
-tail (trees.2.3, 3)
-summary (trees.2.3)
-skewness (trees.2.3)
-cov (trees.2.3)
-
-
-###################################################
-### code chunk number 46: probhat.Rnw:601-602
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-stripchart (Height, "jitter", pch=1)
-
-
-###################################################
-### code chunk number 47: probhat.Rnw:605-606
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-plot (Height, Volume)
-
-
-###################################################
-### code chunk number 48: probhat.Rnw:609-610
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-scatterplot3d (Height, Girth, Volume, type="h", angle=112.5, pch=16)
-
-
-###################################################
-### code chunk number 49: probhat.Rnw:618-623
-###################################################
-head (unemployment.2, 3)
-tail (unemployment.2, 3)
-summary (unemployment.2)
-skewness (unemployment.2)
-cov (unemployment.2)
-
-
-###################################################
-### code chunk number 50: probhat.Rnw:627-629
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-s = 1 - w / max (w)
-plot (unemployment.2, pch=16, col=rgb (s, s, s) )
-
-
-###################################################
-### code chunk number 51: probhat.Rnw:637-642
-###################################################
-head (trees.2.rs, 3)
-tail (trees.2.rs, 3)
-summary (trees.2.rs)
-skewness (trees.2.rs)
-cov (trees.2.rs)
-
-
-###################################################
-### code chunk number 52: probhat.Rnw:646-647
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-stripchart (Height.rs, "jitter", pch=1)
-
-
-###################################################
-### code chunk number 53: probhat.Rnw:650-651
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-plot (Height.rs, Volume.rs)
-
-
-###################################################
-### code chunk number 54: probhat.Rnw:654-655
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-scatterplot3d (Height.rs, Girth.rs, Volume.rs, type="h", angle=112.5, pch=16)
-
-
-###################################################
-### code chunk number 55: probhat.Rnw:677-681
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-reg.mean = reglike (mean (Volume) ~ Height, trees.2.2)
-reg.mode = reglike (mode (Volume) ~ Height, trees.2.2)
-plot (reg.mean, TRUE)
-lines (reg.mode, col="darkgreen")
-
-
-###################################################
-### code chunk number 56: probhat.Rnw:689-695
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-reg.median = reglike (median (Volume) ~ Height, trees.2.2)
-reg.q.25= reglike (quantile (Volume, 0.25) ~ Height, trees.2.2)
-reg.q.75= reglike (quantile (Volume, 0.75) ~ Height, trees.2.2)
-plot (reg.median, TRUE)
-lines (reg.q.25, col="darkgreen")
-lines (reg.q.75, col="darkgreen")
+plot_2x2 (wfh.1,, wfh.2, wfh.3, "cluster 1",, "cluster 2", "cluster 3")
 
 

@@ -1,81 +1,99 @@
-npmean = function (nppdfuv.f)
-{	. = attributes (nppdfuv.f)
-	if (!inherits (nppdfuv.f, "nppdfuv") || !.$spline)
-		stop ("needs nppdfuv object in spline form")
-	y = 0
-	for (i in 1:(.$nc - 1) )
-	{	x = (.$cx [i] + .$cx [i + 1]) / 2
-		y = y + .intt.integral.2 (.$cx [i], .$cx [i + 1], .$cy [i], .$cy [i + 1], .$ct [i], .$ct [i + 1], x)
-	}
-	y
+#probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
+#Copyright (C), Abby Spurdle, 2019
+
+#This program is distributed without any warranty.
+
+#This program is free software.
+#You can modify it and/or redistribute it, under the terms of:
+#The GNU General Public License, version 2, or (at your option) any later version.
+
+#You should have received a copy of this license, with R.
+#Also, this license should be available at:
+#https://cran.r-project.org/web/licenses/GPL-2
+
+ph.mean = function (f, n=200)
+	ph.moment (f, 1, n)
+
+ph.sd = function (f, n=200)
+	sqrt (ph.var (f, n) )
+
+ph.var = function (f, n=200)
+	ph.moment (f, 2, n)
+
+ph.skewness = function (f, n=200)
+	ph.moment (f, 3, n)
+
+ph.kurtosis = function (f, n=200)
+	ph.moment (f, 4, n)
+
+ph.median = function (F.inv)
+	ph.quantile (F.inv, 0.5)
+
+ph.quantile = function (F.inv, p)
+{	if (is.qfuv (F.inv) )
+		F.inv (p)
+	else
+		stop ("needs univariate quantile function")
 }
 
-npmode = function (nppdfuv.f, include.boundaries=TRUE, all=FALSE, warning=FALSE)
-{	. = attributes (nppdfuv.f)
-	if (!inherits (nppdfuv.f, "nppdfuv") || !.$spline)
-		stop ("needs nppdfuv object in spline form")
-	
-	n = .$nc
-	x = .$cx
-	y = .$cy
-	t = .$ct
-	t.left = t [-n]
-	t.right = t [-1]
-
-	modes = values = numeric (0)
-	if (include.boundaries)
-	{	if (y [1] > y [2] && t.left [1] <=0)
-		{	modes = x [1]
-			values = y [1]
-		}
-		if (y [n - 1] < y [n] && t.right [n - 1] >=0)
-		{	modes = c (modes, x [n])
-			values = c (values, y [n])
-		}
+ph.mode = function (f)
+{	if (is.pmfuv (f) )
+		(f %$% "x")[which.max (f %$% ".probs")]
+	else if ( (inherits (f, "pdfuv.cks") || inherits (f, "pdfc.cks") ) && f %$% "is.spline")
+	{	x = chs.argmaxs (f %$% "spline.function")
+		if (length (x) == 0)
+			x = f %$% "xlim"
+		y = f (x)
+		x [which.max (y)]
 	}
-	for (i in 1:(n - 1) )
-	{	if ( (t.right [i] > 0 && t.left [i + 1] < 0) ||
-			(t.right [i] >= 0 && t.left [i + 1] <= 0 && y [i] < y [i + 1] && y [i + 1] > y [i + 2]) ||
-			(t.right [i] > 0 && t.left [i + 1] == 0 && y [i] < y [i + 1]) ||
-			(t.right [i] == 0 && t.left [i + 1] < 0 && y [i] > y [i + 1]) )
-		{	modes = c (modes, x [i + 1])
-			values = c (values, t [i + 1])
-		}
-	}
-	for (i in 1:(n - 1) )
-	{	if ( (t.left [i] > 0 && t.right [i] < 0) ||
-			(t.left [i] == 0 && t.right [i] < 0 && y [i] < y [i + 1]) ||
-			(t.left [i] > 0 && t.right [i] == 0 && y [i] > y [i + 1]) )
-		{	mode = .intt.argmax (x [i], x [i + 1], y [i], y [i + 1], t [i], t [i + 1])
-			value = nppdfuv.f (mode)
-			modes = c (modes, mode)
-			values = c (values, value)
-		}
-	}
-	mode.order = order (modes)
-	modes = modes [mode.order]
-	values = values [mode.order]
-
-	if (warning)
-	{	if (length (modes) == 0)
-			warning ("no modal points")
-		if (length (modes) > 1)
-			warning ("multiple modal points")
-	}
-	if (all)
-		modes
 	else
-		modes [which.max (values)]
+		stop ("needs univariate pmf or pdf")
 }
 
-nprng = function (npcdf.f.inverse, n)
-{	. = attributes (npcdf.f.inverse)
-	if (inherits (npcdf.f.inverse, "npcdfuv.inverse") )
-		npcdf.f.inverse (runif (n) )
-	else if (inherits (npcdf.f.inverse, "chained.npcdfmv.inverse") )
-	{	x = matrix (runif (n * .$m), nrow=n)
-		npcdf.f.inverse (x)
+ph.moment = function (f, nth, n=200)
+{	if (nth == 0)
+		1
+	else
+	{	mean = ph.moment.2 (f, 1, 0, n)
+		if (nth == 1)
+			mean
+		else
+		{	var = ph.moment.2 (f, 2, mean, n)
+			if (nth == 2)
+				var
+			else
+			{	um = ph.moment.2 (f, nth, mean, n)
+				um / var ^ (nth / 2)
+			}
+		}
+	}
+}
+
+ph.moment.2 = function (f, nth=1, about=0, n=200)
+{	if (is.pmfuv (f) )
+	{	x = seq (f)
+		y = f %$% ".probs"
+	}
+	else if (is.cpd (f) && is.cdfuv (f) )
+	{	x = seq (f, n + 1)
+		y = diff (f (x) )
+		x = x [1:n] + (x [2] - x [1]) / 2
 	}
 	else
-		stop ("\nerng needs\nnpcdfuv.inverse or chained.npcdfmv.inverse object")
+		stop ("needs univariate pmf or continuous cdf")
+	if (about != 0)
+			x = x - about
+	if (nth != 1)
+			x = x^nth
+	sum (x * y)
+}
+
+ph.rng = function (F.inv, n=1)
+{	if (is.qfuv (F.inv) )
+		y = runif (n)
+	else if (is.chqf (F.inv) )
+		y = matrix (runif (n * F.inv %$% "m"), nrow=n)
+	else
+		stop ("needs univariate qf, or chqf.cks object")
+	F.inv (y)
 }
