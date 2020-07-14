@@ -33,23 +33,23 @@
 \begin{document}
 
 <<echo=false>>=
-options(continue=" ")
+options(continue=" ", width=80)
 options(SweaveHooks=list(fig=function()
 par(mar=c(4.1, 4.1, 2.6, 1.6), cex=0.7, cex.main=1)))
 set.seed (1)
 @
 
 \newcommand{\pnt}{$\bullet$}
-\newcommand{\pntsq}{\tiny $\blacksquare$}
-\newcommand{\pntst}{$\circ$}
 \newcommand{\tmu}[1]{\textbf {\textsf {\color{db} #1}}}
 \newcommand{\ind}{\hspace {0.375cm} }
 \newcommand{\indf}{\vspace {-0.175cm} \hspace {0.375cm} }
 
-\newcommand{\dks}{$\sim$DKS}
-\newcommand{\cks}{$\sim$CKS}
-\newcommand{\cat}{$\sim$CAT}
-\newcommand{\el}{$\sim$EL}
+\newcommand{\dks}{DKS}
+\newcommand{\cks}{CKS}
+\newcommand{\cat}{CAT}
+\newcommand{\el}{EL}
+\newcommand{\phgmix}{gMIXp}
+\newcommand{\phxmix}{xMIXp}
 
 \newcommand{\pmfuvdks}{PMF\textsubscript{(UV)}$\sim$DKS}
 \newcommand{\cdfuvdks}{CDF\textsubscript{(UV)}$\sim$DKS}
@@ -70,28 +70,24 @@ set.seed (1)
 \newcommand{\pmfuvcat}{PMF\textsubscript{(UV)}$\sim$CAT}
 \newcommand{\cdfuvcat}{CDF\textsubscript{(UV)}$\sim$CAT}
 \newcommand{\qfuvcat}{QF\textsubscript{(UV)}$\sim$CAT}
-\newcommand{\pmfccatcks}{PMF\textsubscript{(C)}$\sim$CAT|CKS}
+\newcommand{\pmfccat}{PMF\textsubscript{(C)}$\sim$CAT}
+\newcommand{\cdfccat}{CDF\textsubscript{(C)}$\sim$CAT}
+\newcommand{\qfccat}{QF\textsubscript{(C)}$\sim$CAT}
 
-\newcommand{\cdfel}{CDF$\sim$EL}
-\newcommand{\qfel}{QF$\sim$EL}
+\newcommand{\cdfuvel}{CDF\textsubscript{(UV)}$\sim$EL}
+\newcommand{\qfuvel}{QF\textsubscript{(UV)}$\sim$EL}
 
-\stitle {probhat}{0.2.0}{Multivariate Generalized\\Kernel Smoothing\\and\\Related Statistical Methods}
+\newcommand{\pmfcgmix}{PMF\textsubscript{(C)}$\sim$gMIXp}
+\newcommand{\cdfcgmix}{CDF\textsubscript{(C)}$\sim$gMIXp}
+\newcommand{\qfcgmix}{QF\textsubscript{(C)}$\sim$gMIXp}
 
-\sabstract {Constructs, plots and evaluates probability distributions (probability mass/density functions, cumulative distribution functions and quantile functions) with continuous kernel smoothing, and to a lesser extent, discrete kernel smoothing. Supports univariate, multivariate and conditional distributions, including multivariate-conditional distributions. Also, supports other probability distributions (categorical, frequency and empirical-like) and weighted data, which is possibly useful mixed with fuzzy clustering. Furthermore, there are extensions for computing multivariate probabilities and multivariate random numbers, and for parameter and mode estimation.}
+\newcommand{\pdfcxmix}{PDF\textsubscript{(C)}$\sim$xMIXp}
+\newcommand{\cdfcxmix}{CDF\textsubscript{(C)}$\sim$xMIXp}
+\newcommand{\qfcxmix}{QF\textsubscript{(C)}$\sim$xMIXp}
 
-\begin {center} \tmu {***note that this package is subject to change***} \end {center}
+\stitle {probhat}{0.3.1}{Multivariate Generalized\\Kernel Smoothing\\and\\Related Statistical Methods}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Pre-Intro}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-This package is based on self-referencing function objects.
-
-Some functions return objects (here, mostly probability distributions), which are also functions.
-
-The resulting function objects have attributes, which are accessible inside the function body.\\
-(This enables functions to be bundled with data).
-
-In this context, it's equivalent to the \{d, p, q, r\} approach used in R's stats package.
+\sabstract {Mass functions, density functions, distribution functions and quantile functions via continuous kernel smoothing, and to a lesser extent, discrete kernel smoothing. Also, supports categorical distributions and smooth empirical-like distributions. There are univariate, multivariate and conditional distributions, including multivariate-conditional distributions and conditional distributions with mixed input types, along with functions for plotting univariate, bivariate and trivariate distributions. Conditional categorical distributions with mixed input types can be used for statistical classification purposes. And there are extensions for computing multivariate probabilities, multivariate random numbers, moment-based statistics, robust-based statistics and mode estimates.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section* {Introduction}
@@ -102,555 +98,477 @@ Kernel smoothing is generalized, by estimating:
 \begin{itemize}
 \itemsep -0.15cm
 	\item Both discrete and continuous probability distributions.
-	\item Probability mass/density functions (PMFs/PDFs), cumulative distribution functions (CDFs) and quantile functions (QFs).
-	\item In the continuous case, multivariate, conditional and weighted distributions.
+	\item Probability mass functions (PMFs), probability density functions (PDFs), cumulative distribution functions (CDFs) and quantile functions (QFs).
+	\item In the continuous case, multivariate and conditional distributions, including multivariate-conditional distributions.
 \end{itemize}
 
-Also, there are categorical and empirical-like distributions, both of which, may be weighted.
+Also, there are categorical distributions (univariate and conditional), smooth empirical-like distributions (univariate), and conditional distributions with mixed input types.
 
-Specifically, this includes:
-\begin{itemize}
-	\item With discrete kernel smoothing (\dks):\\
-	(Primarily, for modelling smoothed-frequency distributions).
-	\begin{itemize}
-	\itemsep -0.15cm
-		\item [\pnt] Univariate probability mass function (\pmfuvdks).
-		\item [\pnt] Univariate cumulative distribution function (\cdfuvdks).
-		\item [\pnt] Univariate quantile function (\qfuvdks).
-	\end{itemize}
-	\item With continuous kernel smoothing (\cks):
-	\begin{itemize}
-	\itemsep -0.15cm
-		\item [\pnt] Univariate probability density function (\pdfuvcks).
-		\item [\pnt] Univariate cumulative distribution function (\cdfuvcks).
-		\item [\pnt] Univariate quantile function (\qfuvcks).
-		\item [\pntsq] Multivariate probability density function (\pdfmvcks).
-		\item [\pntsq] Multivariate cumulative distribution function (\cdfmvcks).
-		\item [\pnt] Conditional probability density function (\pdfccks).
-		\item [\pnt] Conditional cumulative distribution function (\cdfccks).
-		\item [\pnt] Conditional quantile function (\qfccks).
-		\item [\pntsq] Multivariate-conditional probability density function (\pdfmvccks).
-		\item [\pntsq] Multivariate-conditional cumulative distribution function (\cdfmvccks).
-		\item [\pntst] Chained quantile function (\chqfcks).
-	\end{itemize}
-	\item Categorical distributions (\cat):
-	\begin{itemize}
-	\itemsep -0.15cm
-		\item [\pnt] Univariate probability mass function (\pmfuvcat).
-		\item [\pnt] Univariate cumulative distribution function (\cdfuvcat).
-		\item [\pnt] Univariate quantile function (\qfuvcat).
-		\item [\pnt] Conditional probability mass function (\pmfccatcks), conditional on a continuous variable.
-	\end{itemize}
-	\item Empirical-like distributions (\el):
-	\begin{itemize}
-	\itemsep -0.15cm
-		\item [\pnt] (Univariate) cumulative distribution function (\cdfel).
-		\item [\pnt] (Univariate) quantile function (\qfel).
-	\end{itemize}
-	\item Distribution sets:
-	\begin{itemize}
-	\itemsep -0.15cm
-		\item [\pnt] Marginal sets.
-		\item [\pnt] Categorical sets.
-		\item [\pnt] Conditional sets.
-	\end{itemize}
-\end{itemize}
+Discrete kernel smoothing, could also be described as frequency smoothing.
 
-Here, univariate and multivariate models refer to unconditional distributions, unless stated otherwise. Conditional models refers to univariate-conditional distributions, unless stated otherwise. And multivariate-conditional models refer to the special case where a probability distribution is both multivariate and conditional.
+By default, univariate continuous kernel smoothing models use cubic Hermite splines as intermediate models. Corresponding quantile functions (which are spline only) are constructed by fitting a CDF using a spline, then transposing the control points.
 
-By default, \dks\ models are lower-bounded and have a bandwidth parameter of one, which results in an (unsmoothed) frequency distribution. By default, univariate and conditional PDF/CDF \cks\ models use a cubic Hermite spline as an intermediate model.
+Categorical variables are assumed to be ordinal, however, this assumption is only relevant to the interpretation of the CDF and QF. Empirical-like models are derived from empirical cumulative distribution functions. There's a small modification to the standard formula, and the resulting points are interpolated by a cubic Hermite spline, in a similar way to univariate continuous kernel smoothing models.
 
-Categorical variables are assumed to be ordinal, however, this assumption is only relevant for a meaningful interpretation of the CDF and QF. Empirical-like models are derived from empirical cumulative distribution functions. There's a small modification to the (initial) formula, and the resulting points are interpolated by a cubic Hermite spline, in a similar way to \cks\ models.
+A list of models and some notes on terminology, are given in appendices A and B.\\
+Also, there are appendices with formulae, but they need some polishing.
 
-Also, {\cks}/{\cat}/{\el} models can be weighted, and I've provided an example of modelling a fuzzy cluster with weighted multivariate kernel density estimation, in an appendix, at the end of this vignette.
+All models can be given frequencies or weights, and there are examples of modelling fuzzy clusters with weighted multivariate kernel density estimation, in an appendix.
 
-There are plot methods for all univariate models and distribution sets, and for multivariate models but only with two random variables.
+There are plot methods for all univariate models, and for multivariate models but only with two or three random variables.
 
-Often the goal of kernel smoothing is simply to plot the distribution, as an exploratory tool.
+Often the goal of kernel smoothing is simply to plot the distribution, as an exploratory tool, however, these models can be used for a variety of purposes.
 
-However, these models can be used for a variety of purposes, including:
+Conditional categorical distributions with mixed input types, can be used for statistical classification purposes.
+
+Also, there are extensions for computing probabilities, random number generation and parameter-like estimation, including moment-based, order-based, robust-based and mode estimates.
+
+Notes:
 \begin{itemize}
 \itemsep -0.15cm
-    \item Computation of probabilities, from the CDF.
-    \item Random number generation, from QFs.
-    \item Computation of the mean, standard deviation, variance, skewness and kurtosis, from the PMF or continuous CDF.
-    \item Computation of the median or quantiles, from QFs.
-    \item Mode estimation, using the PMF or PDF.
+	\item This package is based on self-referencing function objects.\\
+		(Which are equivalent to the \{d, p, q, r\} approach used in R's stats package).
+	\item Bivariate/trivariate plotting functions use the barsurf package, which uses the base graphics system.
+	\item Variable names are taken from column names or list names.
+	\item This package gives precedence to vectors and matrices, over lists and data frames.\\
+		(One partial exception is categorical data which allow a list of integer/factor/character vectors).
+	\item This vignette contains a small amount of non-visible R code, to produce multi-panel plots.
 \end{itemize}
 
-Noting that all of the above apply to conditional distributions, too.
+Currently, there are some limitations:
+\begin{itemize}
+\itemsep -0.15cm
+	\item Bandwidth selection methods are simplistic.
+	\item Continuous models are unbounded/untruncated only.
+	\item Parameter estimates and distribution sets, need substantial improvement.
+	\item Expanding on the previous set of points, the input format for data, isn't as simple as it could be.
+\end{itemize}
 
-In principle, there's no multivariate quantile function, however, I've created a (novel) chained quantile function, to support the computation of multivariate random numbers.\\
-(i.e. Synthetic data).
-
-Note that currently, this package doesn't support automatic bandwidth selection.
-
-This feature is likely to be added in the next update.
-
-One solution, is to plot marginal PMFs/PDFs, and select the smallest bandwidth that doesn't look like it causing overfitting.
-
-Also note that most of the models in this package work best with matrix objects (not data.frame objects), which have column names.
+These are high priorities for future updates, which may also support categorical smoothing.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section* {Preliminary Code}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-I'm going to load (and attach) the probhat, fclust and scatterplot3d packages:
+I'm going to load (and attach) the vectools, probhat, fclust and scatterplot3d packages:
 <<>>=
-library (probhat)
-library (fclust)
-library (scatterplot3d)
+library (probhat)       #required
+library (vectools)      #optional, used in appendix
+library (fclust)        #optional, used in appendix
+library (scatterplot3d) #optional
 @
 
 Note that the probhat package imports the intoo, barsurf and kubik packages.
 
-I will set the theme for default colors to green:
+I will set global options for viewing PDF documents electronically, and default colors to green:
 
 <<>>=
-use.ph.theme ("green")
+set.ph.options (rendering.style="e", theme="green")
 @
 
 And I will construct some data objects:
 
 <<>>=
-data.prep ()
+ph.data.prep ()
 @
 
-This function emulates a script, the contents of which, are given later, in an appendix.
+This function emulates a script.\\
+The script and the resulting datasets are given in the last two appendices.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section* {Discrete Kernel Smoothing}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-We can construct a \pmfuvdks\ object, using the \tmu{pmfuv.dks} constructor.
+We can construct a \pmfuvdks\ object, using the \tmu{pmfuv.dks} constructor.\\
+Likewise, we can construct \cdfuvdks\ and \qfuvdks\ objects, using the \tmu{cdfuv.dks} and \tmu{qfuv.dks} constructors.
 
-I will use traffic data, derived from the ``Traffic'' data in the MASS package:
+Here are examples, using traffic accident data, derived from the ``Traffic'' dataset in the MASS package:
 
 <<>>=
-fh = pmfuv.dks (traffic.x, traffic.h, bw=23, lower=0)
+dfh <- pmfuv.dks (traffic.bins, traffic.freq, lower=0)
+dFh <- cdfuv.dks (traffic.bins, traffic.freq, lower=0)
+dFht <- qfuv.dks (traffic.bins, traffic.freq, lower=0)
 @
 
 \begin {center}
 <<fig=TRUE, width=4.75, height=3>>=
-plot (fh, TRUE)
+plot (dfh, TRUE, main="Probability Mass Function")
+@
+<<fig=TRUE, width=4.75, height=3>>=
+plot (dfh, TRUE, freq=TRUE, main="same as above\nbut with frequencies")
+@
+<<fig=TRUE, width=4.75, height=3>>=
+plot (dFh, TRUE, main="Cumulative Distribution Function")
+@
+<<fig=TRUE, width=4.75, height=3>>=
+plot (dFht, main="Quantile Function")
 @
 \end {center}
 
-The ``x'' variable is number of accidents, and the ``y'' variable is the frequency.
+Here, traffic.bins is a one-column matrix of integer-indexed bins, and traffic.freq is a vector of counts.
 
-Refer to the help file, for how to construct these objects, with other combinations of the first two arguments.
-
-The resulting object is a function, which maps an integer vector (of integer quantiles) to a numeric vector (of masses):
-
-<<>>=
-fh (10)
-@
-
-Likewise, we can construct \cdfuvdks\ and \qfuvdks\ objects, using the \tmu{cdfuv.dks} and \tmu{qfuv.dks} constructors:
+The resulting objects are function objects.\\
+By default, the PMF maps an integer vector (of quantiles) to a numeric vector (of probabilities), the CDF maps quantiles to cumulative probabilities, and the QF maps probabilities to quantiles:
 
 <<>>=
-Fh = cdfuv.dks (traffic.x, traffic.h, bw=23, lower=0)
-Fh.inv = qfuv.dks (traffic.x, traffic.h, bw=23, lower=0)
+dfh (10)
+dfh (10, freq=TRUE)
+dFht (c (0.25, 0.5, 0.75) )
 @
 
-\begin {center}
-<<fig=TRUE, width=4.75, height=3>>=
-plot (Fh, TRUE)
-@
+Note that PMFs can be constructed, plotted and evaluated with freq=TRUE, which results in frequencies.\\
+Likewise, if constructed with freq=TRUE, they can be plotted and evaluated with freq=FALSE.
 
-<<fig=TRUE, width=4.75, height=3>>=
-plot (Fh.inv)
-@
-\end {center}
-
-Discrete quantile functions, are defined in the same way as R's stats package, and map a numeric vector (in the interval [0, 1]) to an integer vector.
+Also note that this dataset is not an ideal example.\\
+(Essentially, it gives frequencies of frequencies).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section* {Continuous Kernel Smoothing:\\Univariate Probability Distributions}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-By default, univariate (and conditional) PDF/CDF \cks\ models use a cubic Hermite spline as an intermediate model, which is more efficient, if the probability distribution needs to be evaluated many times.
+We can construct a \pdfuvcks\ object, using the \tmu{pdfuv.cks} constructor.\\
+Likewise, we can construct \cdfuvcks\ and \qfuvcks\ objects, using the \tmu{cdfuv.cks} and \tmu{qfuv.cks} constructors.
 
-\qfuvcks\ (and \qfccks) models use either a cubic Hermite spline or a nested spline.
-
-In principle, \qfuvcks\ models are constructed by transposing the CDF, however, if there are level sections in the CDF (i.e. zero-density regions in the corresponding PDF), then a nested spline is constructed, with a separate cubic Hermite spline for each increasing section of the CDF.
-
-We can construct a \pdfuvcks\ object, using the \tmu{pdfuv.cks} constructor.
-
-I will use the height variable derived from the ``trees'' data in the datasets package:
+Here are examples, using height data, derived from the ``trees'' data in the datasets package:
 
 <<>>=
-fh = pdfuv.cks (Height)
+cfh <- pdfuv.cks (height)
+cFh <- cdfuv.cks (height)
+cFht <- qfuv.cks (height)
 @
 
 \begin {center}
 <<fig=TRUE, width=4.75, height=3>>=
-plot (fh, TRUE)
+plot (cfh, TRUE, main="Probability Density Function")
+@
+<<fig=TRUE, width=4.75, height=3>>=
+plot (cFh, TRUE, main="Cumulative Distribution Function")
+@
+<<fig=TRUE, width=4.75, height=3>>=
+plot (cFht, main="Quantile Function")
 @
 \end {center}
 
-Note that this data has been converted to metric.
-
-The resulting object is a function, which maps a numeric vector (of one or more quantiles) to a numeric vector (of one or more densities):
-
-<<>>=
-fh (22)
-@
-
-Likewise, we can construct \cdfuvcks\ and \qfuvcks\ objects, using the \tmu{cdfuv.cks} and \tmu{qfuv.cks} constructors:
+The resulting objects are function objects.\\
+The PDF maps a numeric vector (of quantiles) to a numeric vector (of probabilities), the CDF maps quantiles to cumulative probabilities, and the QF maps probabilities to quantiles.
 
 <<>>=
-Fh = cdfuv.cks (Height)
-Fh.inv = qfuv.cks (Height)
+cfh (22)
+cFht (c (0.25, 0.5, 0.75) )
 @
 
-\begin {center}
-<<fig=TRUE, width=4.75, height=3>>=
-plot (Fh, TRUE)
-@
-
-<<fig=TRUE, width=4.75, height=3>>=
-plot (Fh.inv)
-@
-\end {center}
-
-Continuous quantile functions, map a numeric vector (in the interval [0, 1]) to a numeric vector.
-
-Note that here, they're not the exact inverse of the CDF, however, they become closer to the CDF, if the number of control points in the spline is increased.
-
-<<>>=
-p1 = 0.5
-p2 = Fh (Fh.inv (p1) )
-@
-
-<<>>=
-p1 == p2
-abs (p1 - p2)
-@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section* {Continuous Kernel Smoothing:\\Multivariate Probability Distributions}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-We can construct a \pdfmvcks\ object, using the \tmu{pdfmv.cks} constructor.
+We can construct  \pdfmvcks\ and \cdfmvcks\ objects, using the \tmu{pdfmv.cks} and \tmu{cdfuv.cks} constructors:
 
-Again, I will use the ``trees'' data:
-
-<<>>=
-fh = pdfmv.cks (trees [,2:3])
-@
-\begin {center}
-<<fig=TRUE, width=4.75, height=4>>=
-plot (fh, all=TRUE)
-@
-\end {center}
-
-The resulting object is a function, which maps a numeric vector (implying a single row matrix) or matrix to a numeric vector:
+Here are examples, using earthquake data, derived from the ``quakes'' data, in the datasets package:
 
 <<>>=
-fh (c (22, 0.8) )
-@
-
-Likewise, we can construct a \cdfmvcks\ object, using the \tmu{cdfuv.cks} constructor:
-<<>>=
-Fh = cdfmv.cks (trees [,2:3])
+cfh2 <- pdfmv.cks (quakes [,1:2], smoothness = c (0.35, 1) )
+cfh3 <- pdfmv.cks (quakes [,1:3], smoothness = c (0.35, 1, 1) )
 @
 
 \begin {center}
+<<fig=TRUE, width=4.75, height=3>>=
+plot (cfh2,, TRUE,
+    main="Bivariate PDF, 2D")
+@
+<<fig=TRUE, width=4.75, height=3>>=
+plot (cfh2, TRUE, main="Bivariate PDF, 3D")
+@
 <<fig=TRUE, width=4.75, height=4>>=
-plot (Fh, all=TRUE)
+plot (cfh3, main="Trivariate PDF",
+    nslides=8, zlim = c (680, 40) )
 @
 \end {center}
 
-Also, it's possible to compute what I refer to as chained quantile functions, discussed later.
+The resulting objects are function objects.\\
+The PDF maps a numeric vector or matrix (of quantiles) to a numeric vector (of probabilities) and the CDF maps quantiles to cumulative probabilities.\\
+In PDFs and CDFs, a standard vector is equivalent to a single-row matrix.
+
+<<>>=
+cfh2 (c (180, -20) )
+cfh3 (c (180, -20, 300) )
+@
+
+Note that an example of a multivariate CDF is given in the section on multivariate probabilities, later.
+
+Also note that longitude maps to the ``x'' variable and latitude maps to the ``y'' variable.\\
+(And longitude is the first variable in the derived dataset, but is the second variable in the original dataset).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section* {Continuous Kernel Smoothing:\\Conditional Probability Distributions}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-We can construct a \pdfccks\ object, using the \tmu{pdfc.cks} constructor:
+We can construct a \pdfccks\ object, using the \tmu{pdfc.cks} constructor.\\
+Likewise, we can construct \cdfccks\ and \qfccks\ objects, using the \tmu{cdfc.cks} and \tmu{qfc.cks} constructors.
+
+Here are examples, using the quakes data, from the previous section:
 
 <<>>=
-conditions = c (Girth=30, Height=22)
-cfh = pdfc.cks (trees, conditions=conditions)
+conditions <- c (long=180, lat=-20)
+@
+
+<<>>=
+depth.fhc <- pdfc.cks (quakes [,-4], smoothness = c (0.35, 1, 1),
+    conditions=conditions, preserve.range=TRUE)
+mag.fhc <- pdfc.cks (quakes [,-3], smoothness = c (0.35, 1, 1),
+    conditions=conditions, preserve.range=TRUE)
 @
 
 \begin {center}
 <<fig=TRUE, width=4.75, height=3>>=
-plot (cfh)
+plot (depth.fhc, main="conditional distribution of depth\n(long=180, lat=-20)")
+@
+<<fig=TRUE, width=4.75, height=3>>=
+plot (mag.fhc, main="conditional distribution of mag\n(long=180, lat=-20)")
 @
 \end {center}
 
-As with previous objects, it's a function which can be evaluated:
-<<>>=
-#density of volume (volume=0.85), given girth=30 and height=22
-cfh (0.85)
-@
-
-Likewise, we can construct \cdfccks\ and \qfccks\ objects, using the \tmu{cdfc.cks} and \tmu{qfc.cks} constructors.
-
-The resulting functions are almost identical to univariate functions, so I will bypass the examples.
+The resulting objects are function objects, similar to univariate models, given earlier.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section* {Continuous Kernel Smoothing:\\Multivariate-Conditional Distributions}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-We can construct a \pdfmvccks\ object, using the \tmu{pdfmvc.cks} constructor.
+We can construct \pdfmvccks\ and \cdfmvccks\ objects, using the \tmu{pdfmvc.cks} and \tmu{cdfmvc.cks} constructors.
 
-I will use four variables from the ``quakes'' data in the datasets package:
+Here are examples, using the quakes data, from the previous sections:
 
 <<>>=
-conditions = c (lat=-20, long=180)
-cfh = pdfmvc.cks (quakes, conditions=conditions)
+depth.mag.fhc <- pdfmvc.cks (quakes, smoothness = c (0.35, 1, 1, 1),
+    conditions = c (long=180, lat=-20), preserve.range=TRUE)
+lat.long.fhc <- pdfmvc.cks (quakes [,-4], smoothness = c (0.35, 1, 1),
+    conditions = c (depth=168), preserve.range=TRUE)
 @
 
 \begin {center}
 <<fig=TRUE, width=4.75, height=3>>=
-plot (cfh, xlim = c (0, 800) )
+plot (depth.mag.fhc,
+    main="conditional distribution of depth and mag\n(long=180, lat=-20)")
 @
 <<fig=TRUE, width=4.75, height=3>>=
-plot (cfh, TRUE, xlim = c (0, 800) )
+plot (lat.long.fhc,
+    main="conditional distribution of lat and long\n(depth=168)")
 @
 \end {center}
 
-The model above, gives the bivariate density estimate of depth and magnitude, conditional on the near-mean values of latitude and longitude.
-
-I found this interesting, because it suggests that, for a given location, there are two depth-based clusters of earthquakes.
-
-So, here's some similar models, but using different locations:
-
-<<>>=
-cfh.AA = pdfmvc.cks (quakes, conditions = c (lat=-30, long=170) )
-cfh.AB = pdfmvc.cks (quakes, conditions = c (lat=-30, long=180) )
-cfh.BA = pdfmvc.cks (quakes, conditions = c (lat=-20, long=170) )
-cfh.BB = cfh
-@
-
-\begin {center}
-<<fig=TRUE, width=4.75, height=4.75>>=
-plot_2x2 (cfh.AA, cfh.AB, cfh.BA, cfh.BB,
-    "lat=-30, long=170", "lat=-30, long=180",
-    "lat=-20, long=170", "lat=-20, long=180",
-    xlim = c (0, 800) )
-@
-\end {center}
-
-And what if we reverse the relationship (and model latitude and longitude conditional on depth), and ignore magnitude...
-
-<<>>=
-cfh.A = pdfmvc.cks (quakes [,-4], conditions = c (depth=100) )
-cfh.B = pdfmvc.cks (quakes [,-4], conditions = c (depth=500) )
-@
-
-\begin {center}
-<<fig=TRUE, width=4.75, height=3>>=
-plot (cfh.A, main="depth=100")
-@
-<<fig=TRUE, width=4.75, height=3>>=
-plot (cfh.B, main="depth=500")
-@
-\end {center}
-
-Likewise, we can construct a \cdfmvccks\ object, using the \tmu{cdfmvc.cks} constructor, however, I'm going to bypass the example.
+The resulting objects are function objects, similar to multivariate models, given earlier.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section* {Categorical Distributions}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-We can construct a \pmfuvcat\ object, using the \tmu{pmfuv.cat} constructor.
+We can construct a \pmfuvcat\ object, using the \tmu{pmfuv.cat} constructor.\\
+Likewise, we can construct \cdfuvcat\ and \qfuvcat\ objects, using the \tmu{cdfuv.cat} and \tmu{qfuv.cat} constructors. 
 
-I will use the state region variable from the datasets package: 
+Here are examples, using the number arrests per crime type, derived from the state.x77 and USArrests datasets in the datasets package: 
 
 <<>>=
-fh = pmfuv.cat (region)
+gfh <- pmfuv.cat (crime.type, n.arrests)
 @
 
 \begin {center}
 <<fig=TRUE, width=4.75, height=3>>=
-plot (fh)
+plot (gfh, main="Probability Mass Function")
 @
-\end {center}
-
-The resulting object is a function, which maps an integer or character vector to a numeric vector:
-<<>>=
-fh (1)
-fh ("North Central")
-@
-
-Likewise, we can construct \cdfuvcat\ and \qfuvcat\ objects, using the \tmu{cdfuv.cat} and \tmu{qfuv.cat} constructors. However, as the categorical variable is not clearly ordinal, I will bypass the examples.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Categorical Distributions\\Conditional on A Continuous Variable}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-It's possible to construct a \pmfccatcks\ object, using the \tmu{pmfc.cat.cks} constructor.
-
-This gives a categorical distribution (currently, univariate PMF only) conditional on a continuous variable.
-
-I will use the ``iris'' data from the datasets package:
-
-<<>>=
-mean.Sepal.Length = mean (iris.Sepal.Length)
-fh = pmfc.cat.cks (iris.Species, iris.Sepal.Length, at=mean.Sepal.Length)
-@
-
-\begin {center}
 <<fig=TRUE, width=4.75, height=3>>=
-plot (fh)
+plot (gfh, freq=TRUE, main="same as above\nbut with frequencies")
 @
 \end {center}
 
-Currently, \pmfccatcks\ models are derived by using Bayes Theorem with a categorical set, described later.
+The resulting objects are function objects, similar to discrete kernel smoothing.\\
+Categorical PMFs and CDFs can be evaluated using integers, factors or characters.
 
-This in turn, can be used for classification purposes.
+<<>>=
+levels (crime.type$crime.type)
+@
+
+<<>>=
+gfh (1)
+gfh ("Assault")
+@
+
+<<>>=
+gfh ("Assault", freq=TRUE)
+@
+
+Note that the integer above (1) represents the index of the (first) category, and not the corresponding category name (Assault).\\
+This is obvious here, but caution is required if a categorical distribution is constructed from integer-valued categories.
+
+Also, it's possible to construct conditional categorical distributions from categorical data, however, I'm bypassing the examples.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section* {Empirical-Like Distributions}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-We can construct a \cdfel\ object, using the \tmu{cdf.el} constructor:
+We can construct a \cdfuvel\ object, using the \tmu{cdf.el} constructor.\\
+Likewise, we can construct a \qfuvel\ object, using the \tmu{qf.el} constructor.
+
+Here's an example, using the same height data, as earlier:
 
 <<>>=
-Fh = cdf.el (Height)
+eFh <- cdf.el (height)
+eFht <- qf.el (height)
 @
 
 \begin {center}
 <<fig=TRUE, width=4.75, height=3>>=
-plot (Fh)
+plot (eFh, main="Cumulative Distribution Function")
+@
+<<fig=TRUE, width=4.75, height=3>>=
+plot (eFht, main="Quantile Function")
 @
 \end {center}
 
-Likewise, we can construct a \qfel\ object, using the \tmu{qf.el} constructor:
+These models compute a set of points, representing cumulative probabilities, and interpolate the points with a cubic Hermite spline.
 
-<<>>=
-Fh.inv = qf.el (Height)
-@
+The resulting functions are smooth (the property), but don't necessarily appear smooth.
+
+Unlike continuous kernel smoothing, empirical-like models don't smooth (the method) the model.
+
+Empirical-like models require unique x values, and a small amount of random variation is automatically added, if they're not unique.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {Conditional Distributions with Mixed Input Types\\(And Statistical Classification)}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+In addition to the conditional probability distributions listed so far, it's also possible to construct categorical and continuous distributions, conditional on both categorical and continuous variables, or conditional on the opposite type.
+
+Currently, I refer to these as conditional distributions with mixed input types, and give them the extensions \phgmix\ and \phxmix.
+
+A \phgmix\ model, fits a categorical distribution (with a categorical conditional variable) and at least one continuous conditioning variable.\\
+A \phxmix\ model, fits a continuous distribution (with a continuous conditional variable) and at least one categorical conditioning variable.
+
+A \phgmix\ model is computed by fitting one model for each category, along with two non-conditional models, and then uses Bayes' Theorem, to invert the models.
+
+Currently, \phxmix\ models (and \phgmix\ models, if there are both categorical and continuous conditions) use a subset of data, where the categorical conditions match the categorical variables, and then fit a model to that subset, however, this may change in the future.
 
 \begin {center}
 <<fig=TRUE, width=4.75, height=3>>=
-plot (Fh.inv)
+fh1a.gmix <- pmfc.gmixp (species, sepal.length,
+    conditions = c (sepal.length=5.5) )
+plot (fh1a.gmix,
+    main="Conditional Distribution of Iris Species\n(sepal.length=5.5)")
+@
+<<fig=TRUE, width=4.75, height=3>>=
+fh1b.gmix <- pmfc.gmixp (species, sepal.length,
+    conditions = c (sepal.length=6.5) )
+plot (fh1b.gmix,
+    main="Conditional Distribution of Iris Species\n(sepal.length=6.5)")
 @
 \end {center}
 
-Unlike continuous kernel smoothing, empirical-like models don't ``Smooth'' the model, they're completely nonparametric. They compute a set of points, representing cumulative probabilities, and interpolate the points with a cubic Hermite spline. However, the resulting functions don't necessarily appear smooth.
+We can use multiple categorical or continuous variables:\\
+(This example uses one conditional categorical variable and two conditioning continuous variables).
 
-\el\ models may be preferable to \cks\ models, if you want to compute the median or other quantiles, without any smoothing. These quantiles can be regarded as quantiles of the data, itself, rather than estimates derived from a model.
+\begin {center}
+<<fig=TRUE, width=4.75, height=3>>=
+fh2.gmix <- pmfc.gmixp (species, cbind (sepal.length, sepal.width),
+    conditions = c (sepal.length=6, sepal.width=3) )
+plot (fh2.gmix,
+    main = paste (
+        "Conditional Distribution of Iris Species",
+        "(sepal.length=6, sepal.width=3)",
+        sep="\n")
+    )
+@
+\end {center}
 
-As with \qfuvcks\ models, \qfel\ models are not the exact inverse their corresponding CDF.
+Note that the next section, on distribution sets, contains a categorical set, which is equivalent to three \phxmix\ models.
 
-Empirical-like models require unique x values, and a small amount of random variation is automatically added if they're not unique.
+The models above can be used for statistical classification purposes:\\
+(Using the last model):
+
+<<>>=
+ph.mode (fh2.gmix)
+gmode (fh2.gmix)
+@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section* {Distribution Sets}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Here, a distribution set is a set of one or more probability distributions.
 
-Currently, there are three types, and this may be changed significantly, in the future:
+Currently, there are two types:
 \begin{itemize}
 	\item \textbf {Categorical Set}\\One univariate probability distribution for each (categorical) level, out of many (categorical) levels.
-	\item \textbf {Conditional Set}\\Similar to a categorical set, except that there's one univariate-conditional probability distribution for each set of conditions, rather than each level.
 	\item \textbf {Marginal Set}\\One univariate probability distribution for each variable, out of many variables.
 \end{itemize}
-
-We can construct categorical sets, using any of the univariate constructors, given so far.
 
 Lets construct \pdfuvcks\ models of sepal length, grouped by species:
 
 <<>>=
-cs = categorical.set (pdfuv.cks, iris.Sepal.Length, group.by=iris.Species)
+fh.gset <- pdfuv.gset.cks (sepal.length, group.by=species)
 @
 
 \begin {center}
 <<fig=TRUE, width=4.75, height=3>>=
-plot (cs)
+plot (fh.gset, main="Density Estimates of Sepal Length\n(grouped by species)")
 @
 \end {center}
 
-Now, lets construct a conditional set, of the density of volume, conditional on different heights:
+Lets construct marginal \qfuvel\ objects:
+
 <<>>=
-conditions = cbind (Height = c (20, 24, 28) )
-cond.set = conditional.set (pdfc.cks, trees [,2:3], group.by=conditions)
+Fht.mset = qfuv.mset.el (trees)
 @
 
 \begin {center}
-<<fig=TRUE, width=4.75, height=3>>=
-plot (cond.set)
-@
-\end {center}
-
-Note that it's possible that the bandwidth is too low, and increasing the bandwidth may minimize the bimodal effect, above.
-
-We can construct marginal sets using any of the univariate constructors, given so far.
-
-Lets construct marginal \qfel\ objects:
-
-<<>>=
-ms = marginal.set (qf.el, trees)
-@
-
-\begin {center}
-<<fig=TRUE, width=4.75, height=6>>=
-plot (ms)
+<<fig=TRUE, width=4.75, height=4.75>>=
+plot (Fht.mset, nr=2, nc=2)
 @
 \end {center}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section* {Multivariate Probabilities}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Here, multivariate probability refers to the probability of observing multiple random variables between pairs of lower and upper limits. In theory, such probabilities could be computed from the multivariate PMF or PDF, however (here at least), it's more efficient to compute them from the multivariate CDF.
+Here, multivariate probability refers to the probability of observing multiple random variables between pairs of lower and upper limits. In theory, such probabilities could be computed from the multivariate PMF or PDF, however (here, at least), it's more efficient to compute them from the multivariate CDF.
 
-Using the trees data, we can compute the probability that girth, height and volume are all between arbitrary pairs of values.
+Using the trees data, we can compute the probability that height, girth and volume are all between arbitrary pairs of limits.
 
 We can use the \tmu{probmv} function, which has three arguments, the multivariate CDF, a vector of lower limits and a vector of upper limits:
 <<>>=
 #multivariate cdf
-Fh = cdfmv.cks (trees)
+cFh3 <- cdfmv.cks (trees)
 @
 
 <<>>=
-#approximate first and third quartiles
-a = c (28, 22, 0.55)
-b = c (38, 24, 1.05)
-@
-
-<<>>=
-cbind (lower=a, upper=b)
+q <- matrix (c (
+    22, 24,    #height in 22 to 24
+    28, 38,    #girth  in 28 to 38
+    0.55, 1.05 #volume in 0.55 to 1.05
+    ),, 2, byrow=TRUE, dimnames = list (colnames (trees), c ("a", "b") ) )
+q
 @
 
 <<>>=
 #multivariate probability
-probmv (Fh, a, b)
+probmv (cFh3, q [,1], q [,2])
 @
 
 Note that it's possible to compute multiple regions at once by making a and b matrices with each row representing one region. Also note that currently, variables names are ignored, so they must be in the same order as the variables used to construct the CDF.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Chained Quantile Functions\\And Random Number Generation}
+\section* {Chained Quantile Functions\\(And Multivariate Random Number Generation)}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-In addition to the probability distributions presented earlier, it's also possible to construct what I refer to as chained quantile functions.
+Standard quantile functions can be used to compute univariate random numbers via standard inversion sampling
 
-Standard quantile functions can be used to compute univariate random numbers via (standard) inversion sampling. And chained quantile functions (currently, for continuous kernel smoothing only) can be used to compute multivariate random numbers, via nonstandard inversion sampling.
+I've created novel chained quantile functions, to compute multivariate random numbers.
 
-Chained quantile functions work by:
-\begin {enumerate}
-\itemsep -0.15cm
-	\item Fitting a standard quantile function, to the first variable's observations, $\mathbf {x}_{[,1]}^*$.
-	\item Using that quantile function to map the first variable's (input) probabilities, $\mathbf {p}_{[,1]}$, to (output) quantiles $\mathbf {q}_{[,1]}$.
-	\item (Assuming that there are two or more variables).\\
-		Iterating over each evaluation point and each subsequent variable.\\
-		For each (ith) evaluation point and for each (jth) subsequent variable:
-	\begin {enumerate}
-	\itemsep -0.15cm
-		\item Fitting a conditional quantile function to a subset of variables, $\mathbf {x}_{[i, 1:j]}^*$, conditional on the previous variables, $\mathbf {q}_{[i, 1:(j - 1)]}$.
-		\item And then using that conditional quantile function to evaluate the current point, for the next variable.
-	\end {enumerate}
-\end {enumerate}
+It works by fitting a quantile function to the first variable's observations, and then evaluating that quantile function at the first variable's evaluation points.
 
-The convenience function, \tmu{ph.rng}, takes two arguments, the univariate or chained quantile function, and the number of random numbers to generate, then evaluates the quantile function, using a vector or matrix of uniform random numbers.
+Then, assuming that there are two of more variables, a sequence of conditional quantile functions are fitted to incrementing sets of variables, conditional on the previous variables' evaluations, evaluating one new variable, each time.\\
+This is done for each evaluation point.
+
+The convenience function, \tmu{rng}, takes two arguments, the univariate or chained quantile function, and the number of random numbers to generate, then evaluates the quantile function, using a vector or matrix of uniform random numbers.
 
 <<>>=
-chF.inv = chqf.cks (trees)
-synthetic.data = ph.rng (chF.inv, 31)
+chFht <- chqf.cks (trees)
+synthetic.data <- rng (chFht, 31)
 @
 
 <<>>=
 #convenience function
-plot.trees.data = function (x, main)
-{   Height = x [,"Height"]
-    Girth = x [,"Girth"]
-    Volume = x [,"Volume"]
-    scatterplot3d (Height, Girth, Volume,
+plot.trees.data <- function (x, main)
+{   height <- x [,"height"]
+    girth <- x [,"girth"]
+    volume <- x [,"volume"]
+    scatterplot3d (height, girth, volume,
         main=main, type="h", angle=112.5, pch=16)
 }
 @
@@ -667,53 +585,160 @@ plot.trees.data (synthetic.data, "synthetic data")
 @
 \end {center}
 
-Note that I've used the same sample size, however, you could use any sample size.
+Note that this is computationally expensive.
+
+For 3 variables and 31 evaluation points, the algorithm needs to fit:\\
+$1 + 31 * (3 - 1) = 63$ distributions.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Parameter Estimation}
+\section* {Parameter Estimates}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Both univariate and conditional probability distributions can be used to compute probabilities, parameter estimates and other parameter-like estimates. Parameter (and parameter-like) estimates, include the mean, median, mode, other quantiles, standard deviation, variance, skewness and kurtosis.
 
-The mean, standard deviation, variance and higher moments can be computed from the PMF or continuous CDF. The mode can be computed from the PMF or PDF. Probabilities can be computed from the CDF, and the QF can be used for the median and other quantiles. In the future, I may allow automatic conversion between the PMF/PDF, CDF and QF, however, I note that such conversion may be less efficient.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection* {Overview}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-I'm going to use a conditional distribution, and compute its mean, median and mode:
+Univariate probability distributions (including univariate-conditional probability distributions) can be used to compute probabilities and parameter-like estimates, including the mean, standard deviation, variance, skewness and kurtosis, (arbitrary) moments, median, (arbitrary) quantiles and the mode.
 
-<<>>=
-#conditional distributions
-conditions = c (Height=24)
-cfh = pdfc.cks (trees [,2:3], conditions=conditions)
-cFh = cdfc.cks (trees [,2:3], conditions=conditions)
-cFh.inv = qfc.cks (trees [,2:3], conditions=conditions)
-@
+Probabilities can be computed from the CDF.\\
+(i.e. In the univariate continuous case, $\hat F (b) - \hat F (a)$, no example is given).
 
-<<>>=
-#mean, median and mode
-mean.Volume = ph.mean (cFh)
-median.Volume = cFh.inv (0.5)
-mode.Volume = ph.mode (cfh)
-@
+The mean, standard deviation, variance and higher moments, require the PMF or spline-based CDF.
 
-<<>>=
-cbind (statistic = c ("mean", "median", "mode"),
-    value = c (mean.Volume, median.Volume, mode.Volume) )
-@
+The median and quantiles, require the quantile function.
 
-\begin {center}
-<<fig=TRUE, width=4.75, height=3>>=
-plot (cfh)
-abline (v = c (mean.Volume, mode.Volume) )
-abline (v=median.Volume, lty=2)
-@
-\end {center}
+The mode, requires the PMF or spline-based PDF.
+
+In the future, I may allow automatic conversion between the PMF/PDF, CDF and QF.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection* {Moment-Based Statistics}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+We can compute moment-based estimates using the high-level functions the \tmu{ph.mean}, \tmu{ph.sd}, \tmu{ph.var}, \tmu{ph.skewness} and \tmu{ph.kurtosis}.
+
+They require a PMF or spline-based CDF.
 
 <<>>=
-#and just as an example, the variance, skewness and kurtosis...
+ph.mean (cFh)
 ph.var (cFh)
 ph.skewness (cFh)
 ph.kurtosis (cFh)
 @
 
-Note that currently, standard deviation, variance and higher moments, should be regarded as unreliable (because the smoothing algorithm tends to inflate their values), however, they can still be used as an exploratory tool, especially for the purpose, of comparing different conditional probability distributions.
+Note that currently, standard deviation, variance and higher moments, should not be regarded as accurate because the smoothing algorithm tends to inflate their values, however, they can still be used as an exploratory tool, especially for the purpose, of comparing different conditional probability distributions.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection* {Order-Based Summary Statistics}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+We can compute order-based summary statistics, using the \tmu{quartiles}, \tmu{deciles} and \tmu{ntiles} functions.
+
+All of which require a numeric vector, quantile function, or an object than can be coerced to a numeric vector.
+
+<<>>=
+quartiles (cFht)
+deciles (cFht)
+@
+
+<<>>=
+ntiles (cFht, 8)
+ntiles (cFht, 8, rank=FALSE)
+@
+
+<<>>=
+quartiles (cFht)
+quartiles (eFht)
+quartiles (height)
+@
+
+An \qfuvel\ object is automatically created, if a numeric vector is used, hence the last two results should be identical (for unique input values) or almost identical (for non-unique input values).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection* {Robust-Based Statistics}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+We can compute robust-based summary statistics, using the \tmu{ph.median}, \tmu{ph.quantile} and \tmu{iqr} functions.
+
+All of which require a numeric vector, quantile function, or an object than can be coerced to a numeric vector.
+
+<<>>=
+ph.median (cFht)
+ph.quantile (cFht, c (0.25, 0.5, 0.75) )
+@
+
+<<>>=
+#inter-quartile range
+iqr (cFht)
+@
+
+<<>>=
+#inter-quantile ranges
+iqr (cFht, 2/3)
+@
+
+These function work in similar way to the order-based functions in the previous section, which the exception that they're less summary focused.
+
+Note that calling these functions with a quantile function, is equivalent to evaluating the quantile function, directly.\\
+So, the only gain is possible readability.
+
+<<>>=
+cFht (0.5)
+ph.median (cFht)
+@
+
+Like the order-based functions, they can also be used on a numeric vector.
+<<>>=
+ph.median (height)
+@
+
+In theory, this should be more accurate than the median and quantile functions from the stats package, because these use smooth interpolation, rather than linear interpolation.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection* {Mode Estimates}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+We can compute mode estimates using the \tmu{ph.mode}  and \tmu{ph.modes} functions.
+
+The first requires a PMF or spline-based PDF, and the second which computes multiple modes, requires a spline-based PDF only.
+
+<<>>=
+ph.mode(cfh)
+ph.mode(cfh, TRUE)
+@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection* {Putting it All Together}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+<<>>=
+height.summary <- c (
+    mean = ph.mean (cFh),         #CDF
+    sd = ph.sd (cFh),             #CDF
+    variance = ph.var (cFh),      #CDF
+    skewness = ph.skewness (cFh), #CDF
+    kurtosis = ph.kurtosis (cFh), #CDF
+                                  #
+    median = ph.median (cFht),    #QF
+    mode = ph.mode (cfh) )        #PDF
+@
+
+<<>>=
+strs <- c (c ("mean", "median", "mode") )
+x <- height.summary [strs]
+y <- c (0.06, 0.1, 0.14)
+colors <- c ("black", "blue", "darkgreen")
+adjv <- c (1.25, 0.5, -0.25)
+@
+
+\begin {center}
+<<fig=TRUE, width=4.75, height=3>>=
+plot (cfh)
+abline (v=x, col=colors)
+for (i in 1:3)
+    text (x [i], y [i], strs [i], adj = adjv [i], col = colors [i])
+@
+\end {center}
+
+<<>>=
+height.summary
+@
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -727,11 +752,11 @@ My main sources are:
 
 Also, this package uses the following R packages, or has been influenced by them:
 
-\ind\tmu {intoo: Object Oriented Extensions}
+\ind\tmu {intoo: Minimal Language-Like Extensions}
 
 \indf Spurdle, A.
 
-\ind \tmu {barsurf: Bar, Surface and Related Plots}
+\ind \tmu {barsurf: Heatmap-Related Plots and Smooth Multiband Color Interpolation}
 
 \indf Spurdle, A.
 
@@ -742,6 +767,10 @@ Also, this package uses the following R packages, or has been influenced by them
 \ind \tmu {mvtnorm: Multivariate Normal and t Distributions}
 
 \indf Genz, A., Bretz, F., Miwa, T., Mi, X. \& Hothorn, T.
+
+\ind \tmu {kubik: Cubic Hermite Splines and Related Optimization Methods}
+
+\indf Spurdle, A.
 
 \ind \tmu {KernSmooth: Functions for Kernel Smoothing Supporting Wand \& Jones (1995)}
 
@@ -755,10 +784,6 @@ Also, this package uses the following R packages, or has been influenced by them
 
 \indf Giordani, P., Ferraro, M.B. \& Serafini, A.
 
-\ind \tmu {kubik: Cubic Hermite Splines}
-
-\indf Spurdle, A.
-
 \ind \tmu {scatterplot3d: 3D Scatter Plot}
 
 \indf Ligges, U., Maechler, M. \& Schnackenberg, S.
@@ -769,7 +794,114 @@ Also, this package uses the following R packages, or has been influenced by them
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Appendix A:\\Multivariate Probabilities}
+\section* {Appendix A:\\List of Probability Distributions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Discrete kernel smoothing models (\dks):
+\begin{itemize}
+\itemsep -0.15cm
+	\item [\pnt] Univariate probability mass function (\pmfuvdks).
+	\item [\pnt] Univariate cumulative distribution function (\cdfuvdks).
+	\item [\pnt] Univariate quantile function (\qfuvdks).
+\end{itemize}
+
+Continuous kernel smoothing models (\cks):
+\begin{itemize}
+\itemsep -0.15cm
+	\item [\pnt] Univariate probability density function (\pdfuvcks).
+	\item [\pnt] Univariate cumulative distribution function (\cdfuvcks).
+	\item [\pnt] Univariate quantile function (\qfuvcks).\\
+
+	\item [\pnt] Multivariate probability density function (\pdfmvcks).
+	\item [\pnt] Multivariate cumulative distribution function (\cdfmvcks).\\
+
+	\item [\pnt] Conditional probability density function (\pdfccks).
+	\item [\pnt] Conditional cumulative distribution function (\cdfccks).
+	\item [\pnt] Conditional quantile function (\qfccks).\\
+
+	\item [\pnt] Multivariate-conditional probability density function (\pdfmvccks).
+	\item [\pnt] Multivariate-conditional cumulative distribution function (\cdfmvccks).\\
+
+	\item [\pnt] Chained quantile function (\chqfcks).
+\end{itemize}
+
+Categorical models (\cat):
+\begin{itemize}
+\itemsep -0.15cm
+	\item [\pnt] Univariate probability mass function (\pmfuvcat).
+	\item [\pnt] Univariate cumulative distribution function (\cdfuvcat).
+	\item [\pnt] Univariate quantile function (\qfuvcat).\\
+
+	\item [\pnt] Conditional probability mass function (\pmfccat).
+	\item [\pnt] Conditional cumulative distribution function (\cdfccat).
+	\item [\pnt] Conditional quantile function (\qfccat).
+\end{itemize}
+
+Empirical-like models (\el):
+\begin{itemize}
+\itemsep -0.15cm
+	\item [\pnt] Univariate cumulative distribution function (\cdfuvel).
+	\item [\pnt] Univariate quantile function (\qfuvel).
+\end{itemize}
+
+Conditional categorical distributions with mixed input types (\phgmix):
+\begin{itemize}
+\itemsep -0.15cm
+	\item [\pnt] Conditional probability mass function (\pmfcgmix).
+	\item [\pnt] Conditional cumulative distribution function (\cdfcgmix).
+	\item [\pnt] Conditional quantile function (\qfcgmix).
+\end{itemize}
+
+Conditional continuous distributions with mixed input types (\phxmix):
+\begin{itemize}
+\itemsep -0.15cm
+	\item [\pnt] Conditional probability density function (\pdfcxmix).
+	\item [\pnt] Conditional cumulative distribution function (\cdfcxmix).
+	\item [\pnt] Conditional quantile function (\qfcxmix).
+\end{itemize}
+
+Distribution sets:
+\begin{itemize}
+\itemsep -0.15cm
+	\item [\pnt] Marginal sets.
+	\item [\pnt] Categorical sets.
+\end{itemize}
+
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {Appendix B:\\Notation and Terminology Notes}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+When used as a prefix, the letters ``d'' and ``c'' mean discrete and continuous, respectively.\\
+Likewise, DPD and CPD mean discrete probability distribution and continuous probability distribution.
+
+PMF, PDF, CDF and QF refer to probability mass function (or just mass function), probability density function (or just density function), cumulative distribution function (or just distribution function) and quantile function, respectively.
+
+Note that I sometimes use the notation, Fht or Fh.inv, to describe the quantile function.\\
+However, quantile functions are not necessarily the exact inverse of CDFs.\\
+Firstly, CDFs may have level (non-increasing) sections which are non-invertible, and secondly, the algorithm for constructing quantile splines, only transposes the control points, it does not compute an exact inverse.
+
+When used as a suffix, the letters ``uv'', ``mv'', ``c'' and ``mvc'', mean univariate, multivariate, conditional and multivariate-conditional.
+
+In publicly visible constructors (e.g. \tmu{pmfuv.dks}):\\
+Univariate and multivariate distributions, refer to non-conditional univariate and multivariate distributions only, and conditional distributions refer to  univariate conditional distributions only.\\
+This also applies to the corresponding class names, and to most of the section headings in this vignette.
+
+In other contexts, univariate and multivariate distributions, can be conditional or non-conditional, and conditional distributions can be univariate or multivariate, unless stated otherwise.
+
+Currently, conditional distributions need at least one condition.\\(i.e. A model with no conditions is not regarded as conditional).
+
+In this package, a ``bounded'' distribution is a fitted distribution with constraints on the range of the random variable, where the smoothing is truncated at the limits.
+
+In the context of plotting functions, limits refer to the min/max values of axes.\\
+In other contexts, limits refer the (allowable) min/max values of random variables.\\
+When evaluating CDFs, such limits become the corresponding limits of integration.
+
+Also, they define the default values for sequence and plotting functions.
+
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {Appendix C:\\Multivariate Probabilities}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 We can compute the probability that a single (continuous) random variable is between a pair of values as:
 \begin {equation*}
@@ -781,10 +913,9 @@ Where a is the lower limit and b is the upper limit.
 This is the area under a univariate PDF.
 
 Likewise, we can compute the probability that two (continuous) random variables are between two pairs of values as:
-
 \begin {align*}
 \mathbb {P} (a_1 \leq X_1 \leq b_1, \hspace {0.3cm} a_2 \leq X_2 \leq b_2)
-	&= \sum P^{\binom{2}{2}} - \sum P^{\binom{2}{1}} + \sum P^{\binom{2}{1}}\\ \\
+	&= \sum P^{\binom{2}{2}} - \sum P^{\binom{2}{1}} + \sum P^{\binom{2}{0}}\\ \\
 	&= F_{(X1, X2)} (b_1, b_2)\\
 	&- [F_{(X1, X2)} (a_1, b_2) + F_{(X1, X2)} (b_1, a_2)]\\
 	&+ F_{(X1, X2)} (a_1, a_2)
@@ -797,7 +928,6 @@ And where a is a vector of lower limits and b is a vector of upper limits.
 This is the volume under the bivariate PDF.
 
 For three and four variables we have:
-
 \begin {align*}
 &\mathbb {P} (a_1 \leq X_1 \leq b_1, \hspace {0.3cm} a_2 \leq X_2 \leq b_2, \hspace {0.3cm} a_3 \leq X_3 \leq b_3)\\
 	&\hspace{1cm}= \sum P^{\binom{3}{3}} - \sum P^{\binom{3}{2}} + \sum P^{\binom{3}{1}} - \sum P^{\binom{3}{0}}\\ \\
@@ -810,7 +940,6 @@ For three and four variables we have:
 \end {align*}
 
 More generally (given a continuous multivariate CDF, $F_{(X1, X2, ..., Xm)}$, for m random variables), we have:
-
 \begin{equation*}
 \mathbb {P} (a_1 \leq X_1 \leq b_1, \hspace {0.3cm} a_2 \leq X_2 \leq b_2, \hspace {0.15cm} ..., \hspace {0.15cm} a_m \leq X_m \leq b_m) =
 \sum_{k \in [0, m] }\Big((-1)^{m-k} \sum P^{\binom{m}{k}}\Big)
@@ -818,7 +947,7 @@ More generally (given a continuous multivariate CDF, $F_{(X1, X2, ..., Xm)}$, fo
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Appendix B:\\Conditional Formulae}
+\section* {Appendix D:\\Conditional Formulae}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 We can compute univariate-conditional (continuous) distributions, with one random variable conditional on one other variable, using:
 \begin {align*}
@@ -844,7 +973,7 @@ F_{Y} (y)
 	&= \int_{-\infty}^{y} \frac {f_{(X1,X2, ..., Xm)} (x_1=x_1, x_2=x_2, ..., x_{[m-1]}=x_{[m-1]}, \hspace {0.4cm} x_m=u)}{f_{(X1,X2, ..., X[m-1])} (x_1=x_1, x_2=x_2, ..., x_{[m-1]}=x_{[m-1]})} du
 \end {align*}
 
-Note that the convention in this package, is that conditioning variables are enumerated first.
+Note that the convention in this package, is that conditioning variables are enumerated first, and the conditional variables last.
 
 In the univariate-conditional case, ncon (the number of conditions) is equal to m (the total number of variables) minus one.
 
@@ -866,19 +995,23 @@ $\$Y_{\text{mv}}: \{x_{[\text {ncon}+1]}=y_1, x_{[\text {ncon}+2]}=y_2, ...,  x_
 
 $\$U_{\text{mv}}: \{x_{[\text {ncon}+1]}=u_1, x_{[\text {ncon}+2]}=u_2, ...,  x_{[\text {ncon}+M]}=u_M\}$
 
-Note that these formulae do not use all the data. A conditional window is computed, and observations outside the window are discarded. There needs to be at least one observation within the conditional window, otherwise, the denominator is undefined.
+These formulae do not use all the data. A conditional window is computed, and observations outside the window are discarded. There needs to be at least one observation within the conditional window, otherwise, the denominator is undefined.
 
-Note that it's not necessary to compute all of the expression, in each evaluation of the PDF or CDF. Rather, the denominator (which is a multivariate PDF) and the first part of the numerator (given later), can be computed when the object is constructed.
+It's not necessary to compute all of the expression, in each evaluation of the PDF or CDF. Rather, the denominator (which is a multivariate PDF) and the first part of the numerator (given later), can be computed when the object is constructed.
 
-Also, note that it's not necessary to integrate the expression, as such. The algorithms for computing the multivariate PDFs and CDFs via kernel smoothing (also, given later), can be combined.
+And it's not necessary to integrate the expression, as such.
+
+The algorithms for computing the multivariate PDFs and CDFs via kernel smoothing (also, given later), can be combined.
 
 \newpage
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {Appendix E:\\Discrete Kernel Smoothing Formulae}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Appendix C (1):\\Discrete Kernel Smoothing Formulae}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Unstandardized discrete kernels, take the form:
+\tmu{Note that discrete kernels (but not a discrete version of kernel smoothing) may be removed in the future.}
+
+Discrete kernels (without standardized intervals), take the form:
 \begin {align*}
 k (x; \text {bw} ) &= ...\\
 K (x; \text {bw} ) &= ...\\ \\
@@ -890,13 +1023,13 @@ And where bw is the (odd positive) bandwidth parameter.
 
 Unstandardized discrete kernels have zero mass outside the interval [-hbw, +hbw].
 
-We can define additive-component distributions (or kernel mapping functions), as:
+We can define additive component-distributions as:
 \begin {align*}
 k^* (x; k, x_i^*, \text {bw}) &= k (x - x_i^*; \text {bw})\\
 K^* (x; K, x_i^*, \text {bw}) &= K (x - x_i^*; \text {bw})
 \end {align*}
 
-Where $x_i^*$ is the (integer-valued) center of the of each additive-component distribution, and $x$ is the (integer-valued) point on the x-axis, where the function is evaluated.
+Where $x_i^*$ is the (integer-valued) center of the of each additive component-distribution, and $x$ is the (integer-valued) point on the x-axis, where the function is evaluated.
 
 Unbounded PMFs and CDFs can be computed, as follows:
 \begin {align*}
@@ -913,18 +1046,13 @@ And where $\mathbf {x}^*$ is a vector of (integer-valued) bins and $\mathbf {h}$
 
 In general, frequencies are integer-valued, however, there's no requirement for this.
 
-Lower-bounded PMFs and CDFs can be computed by modifying the expressions above:
-\begin {enumerate}
-	\item Mass-estimates are truncated (i.e. equal to zero) below the lower limit.
-	\item Remaining estimates are scaled based on the truncated area, such that the remaining mass-estimates sum to one.
-	\item The x and h values are reflected about the lower limit, prior to smoothing, otherwise, mass-estimates near the lower limit tend to be too small.
-\end {enumerate}
+Bounded PMFs and CDFs can be computed by modifying the expressions above, such that mass estimates are truncated at the lower or upper boundaries. The x and h values are reflected about the boundaries prior to smoothing, otherwise, estimates near the boundaries tend to be too small.
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Appendix C (2):\\Continuous Kernel Smoothing Formulae}
+\section* {Appendix F:\\Continuous Kernel Smoothing Formulae}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Standardized continuous kernels, take the form:
+Continuous kernels (with standardized intervals), take the form:
 \begin {align*}
 k (x) &= ...\\
 K (x) &= ...
@@ -934,13 +1062,13 @@ Where k and K are the kernel's PDF and CDF, respectively.
 
 Standardized continuous kernels have zero density outside the interval [-1, 1].
 
-We can define additive-component distributions (or kernel mapping functions), using:
+We can define additive component-distributions using:
 \begin {align*}
 k^* (x; k, x_i^*, \text{bw}) &= \frac {2}{\text {bw} } k (\frac {2}{\text {bw} }(x - x_i^*) )\\
 K^* (x; K, x_i^*, \text{bw}) &= K (\frac {2}{\text {bw} }(x - x_i^*) )
 \end {align*}
 
-Where bw is the bandwidth, $x_i^*$ is the center of the additive-component distributions, and $x$ is a point on the x-axis, where the function is evaluated.
+Where bw is the bandwidth, $x_i^*$ is the center of each additive component-distribution, and $x$ is a point on the x-axis, where the function is evaluated.
 
 Univariate PDFs and CDFs can be computed, as follows:
 \begin {align*}
@@ -962,27 +1090,6 @@ Multivariate PDFs and CDFs can be computed, as follows:
 
 Where $\mathbf{bw}$ is a bandwidth vector, $\mathbf{x}^*$ is a matrix with $n$ rows (observations) and $m$ columns (variables), and $\mathbf{x}$ is a vector of points on the x-plane, where the function is evaluated.
 
-The numerator of univariate-conditional PDFs and CDFs can be computed, as follows:
-\begin {align*}
-\hat {g}_Y (\mathbf{x}; k, \mathbf{bw}, n, m, \mathbf{x}^*)
-	&= \frac{\sum_i \Big(((\$f_1)) \times ((\$f_2)) \times ... \times ((\$f_{(m-1)})) \times \$f_m \Big)}{n}\\
-\hat {G}_Y (\mathbf{x}; k, K, \mathbf{bw}, n, m, \mathbf{x}^*)
-	&= \frac{\sum_i \Big(((\$f_1)) \times ((\$f_2)) \times ... \times ((\$f_{(m-1)})) \times \$F_m \Big)}{n}
-\end {align*}
-
-Where, in general, the values of the subexpressions inside double brackets are precomputed.\\
-(i.e. They're computed when objects are constructed, not when top-level functions are evaluated).
-
-The numerator of multivariate-conditional PDFs and CDFs can be computed, as follows:
-\begin {align*}
-&\hat {g}_\mathbf{Y} (\mathbf{x}; M, \text{ncon}, k, \mathbf{bw}, n, \mathbf{x}^*)\\
-	&\hspace{1cm} = \frac{\sum_i \Big(((\$f_1)) \times ((\$f_2)) \times ... \times ((\$f_\text{ncon})) \times \$f_{(\text{ncon} + 1)} \times \$f_{(\text{ncon}+ 2)} \times ... \$f_{(\text{ncon}+ M)} \Big)}{n}\\
-&\hat {G}_\mathbf{Y} (\mathbf{x}; M, \text{ncon}, k, K, \mathbf{bw}, n, \mathbf{x}^*)\\
-	&\hspace{1cm} = \frac{\sum_i \Big(((\$f_1)) \times ((\$f_2)) \times ... \times ((\$f_\text{ncon})) \times \$F_{(\text{ncon} + 1)} \times \$F_{(\text{ncon}+ 2)} \times ... \$F_{(\text{ncon}+ M)} \Big)}{n}
-\end {align*}
-
-Where $M$ is the number of random variables and ncon is the number of conditions.
-
 Weighted versions of these formulae are created by substituting:
 \begin {equation*}
 \frac {\sum_i (\$ \text {SUB-EXPRESSION}) }{n}
@@ -1000,7 +1107,7 @@ Subject to:
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Appendix D:\\Empirical-Like Formulae}
+\section* {Appendix G:\\Empirical-Like Formulae}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 An empirical cumulative distribution function, which is a step function, can be computed by:
 \begin {equation*}
@@ -1014,55 +1121,48 @@ A proto-empirical-like distribution, which is also a step function, can be compu
 \mathbb {P} (X \leq x)  = \hat {G}_X (x; n, \mathbf {x}^*) = \frac {\big( \sum_i I (x_i^* \leq x) \big) - 1}{n - 1}
 \end {equation*}
 
-Expanding on an earlier point, this function can be used to generate a sequence of points:
+This function can be used to generate a sequence of points:
 \begin {equation*}
 \{ \big (x_1^*, \hat {G}_X (x_1^*; n, \mathbf {x}^*) \big), \big (x_2^*, \hat {G}_X (x_2^*; n, \mathbf {x}^*) \big), ..., \big (x_n^*, \hat {G}_X (x_n^*; n, \mathbf {x}^*) \big)\}
 \end {equation*}
 
 An empirical-like distribution, which is a continuous function, can be computed by using a cubic Hermite spline to interpolate this sequence. 
 
-\newpage
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Appendix E:\\Data Preparation}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-<<>>=
-data.prep (eval=FALSE, echo=TRUE)
-@
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Appendix F:\\Fuzzy Clustering\\(And Weighted Multivariate Kernel Smoothing)}
+\section* {Appendix H:\\Fuzzy Clustering\\(And Weighted Multivariate Kernel Smoothing)}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Fuzzy clustering computes a membership matrix, from some data.
 
 The values in the membership matrix represent the membership of each data point in each cluster, with each row representing one data point and each column representing one cluster.\\
-(Note that row weights, not column weights, sum to one).
+(Note that rows, not columns, sum to one).
 
-In some situations, is may be of interest to identify the clusters, only. In other situations, it may be of interest to identify the clusters, and model the properties one or more of those clusters.
+In some situations, is may be of interest to identify the clusters, only. In other situations, it may be of interest to identify the clusters, and model the properties of one or more of those clusters.
 
 It's possible to model each cluster using weighted kernel smoothing.
 
 The following computes the membership matrix for three clusters:
 <<>>=
-membership = FKM.gk (unemployment, k=3, seed=2)$U
+membership <- FKM.gk (unemployment, k=3, seed=2)$U
 @
 
 I'm going to extract the weights of the first cluster, and transform them, so that they sum to one:
 
 <<>>=
-w = membership [,1]
-w = w / sum (w)
+w <- membership [,1]
+w <- w / sum (w)
 @
 
 And a weighted model:
 
 <<>>=
-wfh.1 = pdfmv.cks (unemployment, w=w)
+wfh.1 <- pdfmv.cks (unemployment, w=w)
 @
 
 \begin {center}
 <<fig=TRUE, width=4.75, height=3>>=
-plot (wfh.1)
+plot (wfh.1,, TRUE)
 @
 
 <<fig=TRUE, width=4.75, height=3>>=
@@ -1073,17 +1173,54 @@ plot (unemployment, pch=16, col=rgb (k, k, k) )
 
 And for the other two clusters:
 <<>>=
-w = membership [,2]
+w <- membership [,2]
 wfh.2 = pdfmv.cks (unemployment, w = w / sum (w) )
-w = membership [,3]
+w <- membership [,3]
 wfh.3 = pdfmv.cks (unemployment, w = w / sum (w) )
 @
 
 All three:
+<<eval=FALSE>>=
+plot (wfh.1, main="cluster 1")
+plot (wfh.2, main="cluster 2")
+plot (wfh.3, main="cluster 3")
+@
+
 \begin {center}
-<<fig=TRUE, width=4.75, height=4.75>>=
-plot_2x2 (wfh.1,, wfh.2, wfh.3, "cluster 1",, "cluster 2", "cluster 3")
+<<echo=FALSE, fig=TRUE, width=4.75, height=4.75>>=
+p0 <- par (mfrow = c (2, 2) )
+plot (wfh.1, main="cluster 1")
+plot.new ()
+plot (wfh.2, main="cluster 2")
+plot (wfh.3, main="cluster 3")
+par (p0)
 @
 \end {center}
+
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {Appendix I:\\Data Preparation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+<<>>=
+ph.data.prep (eval=FALSE, echo=TRUE)
+@
+
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {Appendix J:\\Datasets}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+<<>>=
+headt (cbind (traffic.bins, freq=traffic.freq) )
+@
+
+<<>>=
+headt (trees)
+headt (quakes)
+headt (crimes)
+headt (data.frame (crime.type=crime.type$crime.type, n.arrests) )
+headt (data.frame (species, sepal.length, sepal.width) )
+headt (unemployment)
+@
 
 \end{document}

@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2019
+#Copyright (C), Abby Spurdle, 2020
 
 #This program is distributed without any warranty.
 
@@ -33,42 +33,54 @@
 	y
 }
 
-.dkernel = function (class, name, pmf, cdf)
+.dkernel = function (class, name, pmf, cdf, hbw)
+{	r = c (-hbw, hbw)
+	pmf = EXTEND (pmf, .KV.pmf, hbw, xlim=r, freq=FALSE)
+	cdf = EXTEND (cdf, .KV.dcdf, hbw, xlim=r)
 	EXTEND (LIST (pmf, cdf), c (class, "dkernel", "kernel"), name)
+}
 
 .ckernel = function (class, name, pdf, cdf)
+{	r = c (-1, 1)
+	pdf = EXTEND (pdf, .KV.pdf, xlim=r)
+	cdf = EXTEND (cdf, .KV.ccdf, xlim=r)
 	EXTEND (LIST (pdf, cdf), c (class, "ckernel", "kernel"), name)
+}
 
-binomial.kernel = function ()
-	.dkernel ("bin.kernel", "binomial", .binomial.pmf, .binomial.cdf)
+binomial.dkernel = function (bw)
+{	n = bw - 1
+	if (n %% 2 == 0)
+	{	hbw = n %/% 2
+		.dkernel ("binomial.dkernel", "binomial", .binomial.pmf, .binomial.cdf, hbw)
+	}
+	else stop ("unsuitable bandwidth")
+}
 
-uniform.kernel = function ()
-	.ckernel ("uniform.kernel", "uniform", .uniform.pdf, .uniform.cdf)
-triangular.kernel = function ()
-	.ckernel ("triangular.kernel", "triangular", .triangular.pdf, .triangular.cdf)
-epanechnikov.kernel = function ()
-	.ckernel ("epanechnikov.kernel", "epanechnikov", .epanechnikov.pdf, .epanechnikov.cdf)
-truncnorm.kernel = function ()
-	.ckernel ("truncnormal.kernel", "truncated normal", .truncnorm.pdf, .truncnorm.cdf)
-biweight.kernel = function ()
+uniform.ckernel = function ()
+	.ckernel ("uniform.ckernel", "uniform", .uniform.pdf, .uniform.cdf)
+triangular.ckernel = function ()
+	.ckernel ("triangular.ckernel", "triangular", .triangular.pdf, .triangular.cdf)
+epanechnikov.ckernel = function ()
+	.ckernel ("epanechnikov.ckernel", "epanechnikov", .epanechnikov.pdf, .epanechnikov.cdf)
+truncnorm.ckernel = function ()
+	.ckernel ("truncnormal.ckernel", "truncated normal", .truncnorm.pdf, .truncnorm.cdf)
+biweight.ckernel = function ()
 	.ckernel ("biweight.kernel", "biweight", .biweight.pdf, .biweight.cdf)
-triweight.kernel = function ()
-	.ckernel ("triweight.kernel", "triweight", .triweight.pdf, .triweight.cdf)
-tricube.kernel = function ()
-	.ckernel ("tricube.kernel", "tricube", .tricube.pdf, .tricube.cdf)
+triweight.ckernel = function ()
+	.ckernel ("triweight.ckernel", "triweight", .triweight.pdf, .triweight.cdf)
+tricube.ckernel = function ()
+	.ckernel ("tricube.ckernel", "tricube", .tricube.pdf, .tricube.cdf)
 bell.spline = function ()
 	.ckernel ("bell.spline", "bell spline", .bell.spline.pdf, .bell.spline.cdf)
 
-.binomial.pmf = function (bw, x)
-{	n = bw - 1
-	hbw = n %/% 2
-	dbinom (x + hbw, n, 0.5)
+.binomial.pmf = function (x, ...)
+{	. = THAT ()
+	with (., dbinom (x + hbw, 2 * hbw, 0.5) )
 }
 
-.binomial.cdf = function (bw, x)
-{	n = bw - 1
-	hbw = n %/% 2
-	pbinom (x + hbw, n, 0.5)
+.binomial.cdf = function (x)
+{	. = THAT ()
+	with (., pbinom (x + hbw, 2 * hbw, 0.5) )
 }
 
 .uniform.pdf = function (x)
