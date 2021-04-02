@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2020
+#Copyright (C), Abby Spurdle, 2018 to 2021
 
 #This program is distributed without any warranty.
 
@@ -68,7 +68,7 @@
 plot_dpd = function (sf, data=FALSE, ...,
 	main, xlab, ylab,
 	xlim, ylim,
-	add=FALSE, axes=TRUE, combine=FALSE, freq, space=0,
+	add=FALSE, axes=TRUE, combine = is.dks (sf), freq=FALSE, n, space=0,
 	line.width, line.color, fill.color)
 {	axes = rep_len (axes, 2)
 	options = getOption ("probhat")
@@ -79,12 +79,19 @@ plot_dpd = function (sf, data=FALSE, ...,
 	if (missing (line.color) )
 		line.color = options$main.line.color
 
+	if (missing (space) )
+	{	if (is.pmf (sf) && is.cat (sf) )
+			space = 2
+		else
+			space = 0
+	}
+
 	if (is.pmf (sf) )
 	{	h0 = 0
 		if (missing (xlim) )
 			xlim = range (sf) + c (-0.5, 0.5)
 		x = xb = seq (sf)
-		y = sf (x, freq=freq)
+		y = sf (x, freq=freq, n=n)
 		if (missing (ylim) )
 			ylim = c (0, max (y) )
 		y2 = sf %$% ".probs"
@@ -92,14 +99,8 @@ plot_dpd = function (sf, data=FALSE, ...,
 		if (missing (xlab) )
 			xlab = .deflab (sf)
 		if (missing (ylab) )
-		{	if (missing (freq) )
-			{	if (sf %$% freq) ylab = "frequency"
-				else ylab = "mass"
-			}
-			else
-			{	if (freq) ylab = "frequency"
-				else ylab = "mass"
-			}
+		{	if (freq) ylab = "frequency"
+			else ylab = "mass"
 		}
 
 		if (missing (fill.color) )
@@ -109,10 +110,10 @@ plot_dpd = function (sf, data=FALSE, ...,
 	{	h0 = 0
 		if (missing (xlim) )
 			xlim = range (sf) + c (-0.5, 0.5)
-		if (missing (ylim) )
-			ylim = c (0, 1)
 		x = xb = seq (sf)
-		y = sf (x)
+		y = sf (x, freq=freq, n=n)
+		if (missing (ylim) )
+			ylim = c (0, max (y) )
 		y2 = sf %$% ".PROBS"
 
 		if (missing (xlab) )

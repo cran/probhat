@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2020
+#Copyright (C), Abby Spurdle, 2018 to 2021
 
 #This program is distributed without any warranty.
 
@@ -22,7 +22,8 @@ plot_cpd = function (sf, data=FALSE, ...,
 	main, xlab, ylab,
 	xlim, ylim,
 	add=FALSE, axes=TRUE,
-	line.width, line.color, fill.color)
+	line.width, line.color, fill.color,
+	n=200)
 {	axes = rep_len (axes, 2)
 	options = getOption ("probhat")
 	if (missing (main) )
@@ -36,7 +37,7 @@ plot_cpd = function (sf, data=FALSE, ...,
 	{	h0 = 0
 		if (missing (xlim) )
 			xlim = range (sf)
-		x = seq (sf)
+		x = seq (xlim [1], xlim [2], length.out=n)
 		y = sf (x)
 		if (missing (ylim) )
 			ylim = c (0, max (y) )
@@ -55,7 +56,7 @@ plot_cpd = function (sf, data=FALSE, ...,
 			xlim = range (sf)
 		if (missing (ylim) )
 			ylim = c (0, 1)
-		x = seq (sf)
+		x = seq (xlim [1], xlim [2], length.out=n)
 		y = sf (x)
 
 		if (missing (xlab) )
@@ -72,7 +73,7 @@ plot_cpd = function (sf, data=FALSE, ...,
 		if (missing (ylim) )
 			ylim = range (sf)
 		h0 = ylim [1]
-		x = seq (0, 1, length.out=200)
+		x = seq (0, 1, length.out=n)
 		y = sf (x)
 
 		if (missing (xlab) )
@@ -121,15 +122,19 @@ plot_cpd = function (sf, data=FALSE, ...,
 }
 
 .xpoints = function (sf, ya, yb, fill.color)
-{	x = sf %$% "x"
-	y = runif (sf %$% "n", ya, yb)
+{	data = sf %$% "data"
+
+	x = data$x
+	y = runif (data$n, ya, yb)
 	points (x, y, pch=16, col=fill.color)
 	points (x, y)
 }
 
 .wpoints = function (sf, ya, yb)
-{	w = sf %$% "w"
-	x = sf %$% "x"
+{	data = sf %$% "data"
+
+	w = data$w
+	x = data$x
 	y = runif (sf %$% "n", ya, yb)
 	I = order (w)
 	.wpoints.2 (w, x, y)

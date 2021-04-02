@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2020
+#Copyright (C), Abby Spurdle, 2018 to 2021
 
 #This program is distributed without any warranty.
 
@@ -11,134 +11,116 @@
 #Also, this license should be available at:
 #https://cran.r-project.org/web/licenses/GPL-2
 
-pdfuv.cks = function (x, ..., spline=TRUE, bw.method="ph.default", kernel=biweight.ckernel, nc=30, bw, smoothness=1, w=NA)
-	.cksuv (.pdfuv.cks.eval, .CV.pdfuv.cks, FALSE, spline, nc, bw.method, kernel, bw, smoothness, x, w)
-
-.pdfuv.cks.eval = function (x)
-{	. = THAT ()
-	if (.$is.spline)
-		.$spline.function (x)
-	else
-		.iterate.uv (.pdfuv.cks.eval.scalar, .$is.weighted, .$kernel$pdf, .$bw, .$n, .$x, .$w, u=x)
+pdfuv.cks = function (x, ..., w,
+	bw, smoothness=1,
+	kernel=BIWEIGHT.CKERNEL,
+	spline=TRUE, bw.method="ph.default", nc=30,
+	Xlim = cbind (a, b), a=-Inf, b=Inf)
+{	.arg.error (...)
+	.cksuv (.pdfuv.cks.eval, .CV.pdfuv.cks,
+		FALSE, spline, nc, Xlim, bw.method, kernel, bw, smoothness, x, w)
 }
 
-cdfuv.cks = function (x, ..., spline=TRUE, bw.method="ph.default", kernel=biweight.ckernel, nc=30, bw, smoothness=1, w=NA)
-	.cksuv (.cdfuv.cks.eval, .CV.cdfuv.cks, TRUE, spline, nc, bw.method, kernel, bw, smoothness, x, w)
-
-.cdfuv.cks.eval = function (q)
-{	. = THAT ()
-	if (.$is.spline)
-		.$spline.function (q)
-	else
-		.iterate.uv (.cdfuv.cks.eval.scalar, .$is.weighted, .$kernel$cdf, .$bw, .$n, .$x, .$w, u=q)
+cdfuv.cks = function (x, ..., w,
+	bw, smoothness=1,
+	kernel=BIWEIGHT.CKERNEL,
+	spline=TRUE, bw.method="ph.default", nc=30, tail="lower",
+	Xlim = cbind (a, b), a=-Inf, b=Inf)
+{	.arg.error (...)
+	.cksuv (.cdfuv.cks.eval, .CV.cdfuv.cks,
+		TRUE, spline, nc, Xlim, bw.method, kernel, bw, smoothness, x, w, tail)
 }
 
-qfuv.cks = function (x, ..., bw.method="ph.default", kernel=biweight.ckernel, nc=30, bw, smoothness=1, w=NA)
-{	F = function (q)
-	{	. = THAT ()
-		.iterate.uv (.cdfuv.cks.eval.scalar, .$is.weighted, .$kernel$cdf, .$bw, .$n, .$x, .$w, u=q)
-	}
-	F.inv = function (p)
-	{	. = THAT ()
-		.test.y.ok (p)
-		.$spline.function (p)
-	}
-  	.qfuv.cks (F, F.inv, nc, bw.method, kernel, bw, smoothness, x, w)
+qfuv.cks = function (x, ..., w,
+	bw, smoothness=1,
+	kernel=BIWEIGHT.CKERNEL,
+	bw.method="ph.default", nc=30,
+	Xlim = cbind (a, b), a=-Inf, b=Inf)
+{	.arg.error (...)
+	.qfuv.cks (.cdfuv.cks.eval, .qfuv.cks.eval,
+		nc, Xlim, bw.method, kernel, bw, smoothness, x, w, tail="lower")
 }
 
-pdfmv.cks = function (x, ..., bw.method="ph.default", kernel=biweight.ckernel, bw, smoothness=1, w=NA)
-{	f = function (x)
-	{	. = THAT ()
-		x = .val.u.mv (.$m, x)
-		.iterate.mv (.pdfmv.cks.eval.scalar, .$is.weighted, .$kernel$pdf, .$bw, .$n, .$m, .$x, .$w, u=x)
-	}
-	.cksmv (f, .CV.pdfmv.cks, bw.method, kernel, bw, smoothness, x, w)
+pdfmv.cks = function (x, ..., w,
+	bw, smoothness=1,
+	kernel=BIWEIGHT.CKERNEL,
+	bw.method="ph.default",
+	Xlim = cbind (a, b), a=-Inf, b=Inf)
+{	.arg.error (...)
+	.cksmv (.pdfmv.cks.eval, .CV.pdfmv.cks,
+		Xlim, bw.method, kernel, bw, smoothness, x, w)
 }
 
-cdfmv.cks = function (x, ..., bw.method="ph.default", kernel=biweight.ckernel, bw, smoothness=1, w=NA)
-{	F = function (q)
-	{	. = THAT ()
-		q = .val.u.mv (.$m, q)
-		.iterate.mv (.cdfmv.cks.eval.scalar, .$is.weighted, .$kernel$cdf, .$bw, .$n, .$m, .$x, .$w, u=q)
-	}
-	.cksmv (F, .CV.cdfmv.cks, bw.method, kernel, bw, smoothness, x, w)
+cdfmv.cks = function (x, ..., w,
+	bw, smoothness=1,
+	kernel=BIWEIGHT.CKERNEL,
+	bw.method="ph.default", tail="lower",
+	Xlim = cbind (a, b), a=-Inf, b=Inf)
+{	.arg.error (...)
+	.cksmv (.cdfmv.cks.eval, .CV.cdfmv.cks,
+		Xlim, bw.method, kernel, bw, smoothness, x, w, "mv", TRUE, tail=tail)
 }
 
-pdfc.cks = function (x, ..., spline=TRUE, bw.method="ph.default", kernel=biweight.ckernel, nc=30, bw, smoothness=1, w=NA,
-	conditions, preserve.range=FALSE, warning=TRUE)
-{	f = function (x)
-	{	. = THAT ()
-		if (.$is.spline)
-			.$spline.function (x)
-		else
-			.iterate.uv (.pdfc.cks.eval.scalar, .$.constant, .$.v, .$M, .$ncon, .$is.weighted, .$kernel$pdf, .$bw, .$n, .$x, .$w, u=x)
-	}
-	.cksc.2 (f, .CV.pdfc.cks, FALSE, spline, nc, preserve.range, conditions, bw.method, kernel, bw, smoothness, x, w, warning)
+pdfc.cks = function (x, ..., conditions, w,
+	bw, smoothness=1,
+	kernel=BIWEIGHT.CKERNEL,
+	spline=TRUE, bw.method="ph.default", nc=30,
+	Xlim = cbind (a, b), a=-Inf, b=Inf,
+	preserve.range=FALSE, as.cset=FALSE, warning=TRUE)
+{	.arg.error (...)
+	.cksc.2 (.pdfc.cks.eval, .CV.pdfc.cks,
+		FALSE, spline, nc, preserve.range, conditions, Xlim, bw.method, kernel, bw, smoothness, x, w, as.cset, warning)
 }
 
-cdfc.cks = function (x, ..., spline=TRUE, bw.method="ph.default", kernel=biweight.ckernel, nc=30, bw, smoothness=1, w=NA,
-	conditions, preserve.range=FALSE, warning=TRUE)
-{	F = function (q)
-	{	. = THAT ()
-		if (.$is.spline)
-			.$spline.function (q)
-		else
-			.iterate.uv (.cdfc.cks.eval.scalar, .$.constant, .$.v, .$M, .$ncon, .$is.weighted, .$kernel$cdf, .$bw, .$n, .$x, .$w, u=q)
-	}
-	.cksc.2 (F, .CV.cdfc.cks, TRUE, spline, nc, preserve.range, conditions, bw.method, kernel, bw, smoothness, x, w, warning)
+cdfc.cks = function (x, ..., conditions, w,
+	bw, smoothness=1,
+	kernel=BIWEIGHT.CKERNEL,
+	spline=TRUE, bw.method="ph.default", nc=30, tail="lower",
+	Xlim = cbind (a, b), a=-Inf, b=Inf,
+	preserve.range=FALSE, as.cset=FALSE, warning=TRUE)
+{	.arg.error (...)
+	.cksc.2 (.cdfc.cks.eval, .CV.cdfc.cks,
+		TRUE, spline, nc, preserve.range, conditions, Xlim, bw.method, kernel, bw, smoothness, x, w, as.cset, warning, tail)
 }
 
-qfc.cks = function (x, ..., bw.method="ph.default", kernel=biweight.ckernel, nc=30, bw, smoothness=1, w=NA,
-	conditions, preserve.range=FALSE, warning=TRUE)
-{	F = function (q)
-	{	. = THAT ()
-		.iterate.uv (.cdfc.cks.eval.scalar, .$.constant, .$.v, .$M, .$ncon, .$is.weighted, .$kernel$cdf, .$bw, .$n, .$x, .$w, u=q)
-	}
-	F.inv = function (p)
-	{	. = THAT ()
-		.test.y.ok (p)
-		.$spline.function (p)
-	}
-	.qfc.cks (F, F.inv, nc, preserve.range, conditions, bw.method, kernel, bw, smoothness, x, w, warning)
+qfc.cks = function (x, ..., conditions, w,
+	bw, smoothness=1,
+	kernel=BIWEIGHT.CKERNEL,
+	bw.method="ph.default", nc=30,
+	Xlim = cbind (a, b), a=-Inf, b=Inf,
+	preserve.range=FALSE, as.cset=FALSE, warning=TRUE)
+{	.arg.error (...)
+	.qfc.cks (.cdfc.cks.eval, .qfc.cks.eval,
+		nc, preserve.range, conditions, Xlim, bw.method, kernel, bw, smoothness, x, w, as.cset, warning, tail="lower")
 }
 
-.cdfc.cks.eval.2 = function (q)
-{	. = THAT ()
-	.iterate.uv (.cdfc.cks.eval.scalar.2, .$ncon, .$is.weighted, .$conditions, .$kernel$pdf, .$kernel$cdf, .$bw, .$n, .$x, .$w, u=q)
+pdfmvc.cks = function (x, ..., conditions, w,
+	bw, smoothness=1,
+	kernel=BIWEIGHT.CKERNEL,
+	bw.method="ph.default",
+	Xlim = cbind (a, b), a=-Inf, b=Inf,
+	preserve.range=FALSE, as.cset=FALSE, warning=TRUE)
+{	.arg.error (...)
+	.cksmvc.2 (.pdfmvc.cks.eval, .CV.pdfmvc.cks, FALSE,
+		preserve.range, conditions, Xlim, bw.method, kernel, bw, smoothness, x, w, as.cset, warning)
 }
 
-.qfc.cks.eval.2 = function (p)
-{	. = THAT ()
-	.$spline.function (p)
+cdfmvc.cks = function (x, ..., conditions, w,
+	bw, smoothness=1,
+	kernel=BIWEIGHT.CKERNEL,
+	bw.method="ph.default", tail="lower",
+	Xlim = cbind (a, b), a=-Inf, b=Inf,
+	preserve.range=FALSE, as.cset=FALSE, warning=TRUE)
+{	.arg.error (...)
+	.cksmvc.2 (.cdfmvc.cks.eval, .CV.cdfmvc.cks, TRUE,
+		preserve.range, conditions, Xlim, bw.method, kernel, bw, smoothness, x, w, as.cset, warning, tail)
 }
 
-pdfmvc.cks = function (x, ..., bw.method="ph.default", kernel=biweight.ckernel, bw, smoothness=1, w=NA,
-	conditions, preserve.range=FALSE, warning=TRUE)
-{	f = function (x)
-	{	. = THAT ()
-		x = .val.u.mv (.$M, x)
-		.iterate.mv (.pdfc.cks.eval.scalar, .$.constant, .$.v, .$M, .$ncon, .$is.weighted, .$kernel$pdf, .$bw, .$n, .$x, .$w, u=x)
-	}
-	.cksmvc.2 (f, .CV.pdfmvc.cks, preserve.range, conditions, bw.method, kernel, bw, smoothness, x, w, warning)
-}
-
-cdfmvc.cks = function (x, ..., bw.method="ph.default", kernel=biweight.ckernel, bw, smoothness=1, w=NA,
-	conditions, preserve.range=FALSE, warning=TRUE)
-{	F = function (q)
-	{	. = THAT ()
-		q = .val.u.mv (.$M, q)
-		.iterate.mv (.cdfc.cks.eval.scalar, .$.constant, .$.v, .$M, .$ncon, .$is.weighted, .$kernel$cdf, .$bw, .$n, .$x, .$w, u=q)
-	}
-	.cksmvc.2 (F, .CV.cdfmvc.cks, preserve.range, conditions, bw.method, kernel, bw, smoothness, x, w, warning)
-}
-
-chqf.cks = function (x, ..., bw.method="ph.default", kernel=biweight.ckernel, nc=16, bw, smoothness=1, w=NA)
-{	chqf.f = function (p)
-	{	this.f = THIS ()
-		p = .val.u.mv (this.f %$% "m", p)
-		x = .chqf.cks.eval (this.f, p)
-		colnames (x) = this.f %$% "variable.names"
-		x
-	}
-	.chqf.cks (chqf.f, nc, bw.method, kernel, bw, smoothness, x, w)
+chqf.cks = function (x, ..., w,
+	bw, smoothness=1,
+	kernel=BIWEIGHT.CKERNEL,
+	bw.method="ph.default", nc=16)
+{	.arg.error (...)
+	.chqf.cks (.chqf.cks.eval,
+		nc, bw.method, kernel, bw, smoothness, x, w)
 }

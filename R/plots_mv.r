@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2020
+#Copyright (C), Abby Spurdle, 2018 to 2021
 
 #This program is distributed without any warranty.
 
@@ -11,98 +11,157 @@
 #Also, this license should be available at:
 #https://cran.r-project.org/web/licenses/GPL-2
 
-.plot_cfield.ext = function (x, y, fv, ..., add=FALSE,contours=TRUE, heatmap=TRUE, xyrel="m", .points)
-{	options = options = getOption ("probhat")
+setClass ("BVMatrix",
+	slots = list (fv="matrix", x="numeric", y="numeric") )
+
+.plot_cfield.ext = function (x, y, fv, ..., add=FALSE, ncontours, contours=TRUE, fb, contour.labels, heatmap=TRUE, xyrel="m",
+	.is.cdf, .has.points, .points, .point.color)
+{	if (missing (ncontours) )
+	{	if (.is.cdf) ncontours = 4
+		else ncontours = 6
+	}
+	if (missing (contour.labels) )
+	{	if (.is.cdf) contour.labels = TRUE
+		else contour.labels = FALSE
+	}
+	if (.is.cdf && missing (fb) )
+	{	if (ncontours == 1) fb = 0.5
+		else if (ncontours == 2) fb = c (0.33, 0.67)
+		else if (ncontours == 3) fb = c (0.25, 0.5, 0.75)
+		else if (ncontours == 4) fb = c (0.2, 0.4, 0.6, 0.8)
+		else
+		{	fb = seq (0, 1, length.out = ncontours + 2)
+			fb = fb [2:(ncontours + 1)]
+			fb = round (fb, 2)
+		}
+	}
+
 	plot_cfield (x, y, fv, xyrel=xyrel, add=add, contours=FALSE, heatmap=heatmap, ...)
-	if (! is.null (.points) )
-		points (.points [,1], .points [,2], pch=16, col=options$semi.fill.color)
-	plot_cfield (x, y, fv, contours=contours, heatmap=FALSE, add=TRUE, ...)
+	if (.has.points)
+		points (.points [,1], .points [,2], pch=16, col=.point.color)
+	plot_cfield (x, y, fv, fb=fb, ncontours=ncontours, contours=contours, contour.labels=contour.labels, heatmap=FALSE, add=TRUE, ...)
 }
 
-.plotf_cfield_3d.ext = function (..., emph="h") plotf_cfield_3d (..., emph=emph)
+.plot_surface = function (..., zlab, ref.arrows=FALSE, z.axis, .sf)
+{	is.cdf = is.ccdf (.sf)
 
-.mvvarname = function (sf, xlab, I)
-{	if (missing (xlab) )
-	{	xlab = (sf %$% "variable.names") [I]
-		if (is.cpdmvc (sf) )
-			xlab = paste ("conditional", xlab)
+	if (missing (z.axis) )
+	{	if (is.cdf) z.axis=TRUE
+		else z.axis=FALSE
+	}
+	if (missing (zlab) )
+	{	if (z.axis)
+		{	if (is.cdf) zlab = "Fh"
+			else zlab = "fh"
+			xlab = .mvvarname (.sf, 0, 1, TRUE, req=TRUE)
+			ylab = .mvvarname (.sf, 0, 2, TRUE, req=TRUE)
+			if (is.cpdmvc (.sf) )
+				constr = " | ..."
+			else
+				constr = ""
+			zlab = paste0 (zlab, " (", xlab, ", ", ylab, constr, ")")
+		}
+		else
+			zlab=""
+	}
+	plot_surface (..., zlab=zlab, ref.arrows=ref.arrows, z.axis=z.axis)
+}
+
+.plotf_isosurface = function (..., ref.arrows=FALSE, maximal=TRUE)
+	plotf_isosurface (..., ref.arrows=ref.arrows, maximal=maximal)
+.plotf_cfield_3d.ext = function (..., emph="h")
+	plotf_cfield_3d (..., emph=emph)
+
+.mvvarname = function (sf, xlab, I, compact=FALSE, ..., req=FALSE)
+{	if (req || missing (xlab) )
+	{	xlab = (names (sf) ) [I]
+		if (is.cpdmvc (sf) && ! compact)
+			xlab = paste (xlab, "| ...")
 	}
 	xlab
 }
 
-plot_cpd_bv = function (sf, in3d=FALSE, data=FALSE, ..., all=FALSE, n=30,
-	main, xlab, ylab, xlim, ylim, zlim)
+plot_cpd_bv = function (sf, in3d=FALSE, data, ..., n=30,
+	main, xlab, ylab, zlab, xlim, ylim, zlim,
+	add=FALSE, point.color)
 {	. = attributes (sf)
-	Jx = sf %$% "m" - 1
-	Jy = Jx + 1
 	if (missing (main) )
 		main = ""
-	xlab = .mvvarname (sf, xlab, Jx)
-	ylab = .mvvarname (sf, ylab, Jy)
-	if (is.cpdmvc (sf) )
-	{	all = FALSE
-		data = FALSE
-	}
-	if (all)
-	{	f1 = .uv.from.mv.cks (sf, Jx)
-		f2 = .uv.from.mv.cks (sf, Jy)
-		mar = c (4.75, 4.75, 0.75, 0.75)
-		p0 = par (cex=0.65, mar=mar, mfcol = c (2, 2) )
-		plot (f1, data)
-		plot (f2, data)
-		plot_cpd_bv (sf, FALSE, data, ..., n=n)
-		plot_cpd_bv (sf, TRUE, ..., n=n)
-		par (p0)
+	xlab = .mvvarname (sf, xlab, 1)
+	ylab = .mvvarname (sf, ylab, 2)
+
+	is.cdf = is.ccdf (sf)
+	v = ph4.BVMatrix (sf, xlim, ylim, n=n)
+	if (in3d)
+	{	if (missing (zlim) )
+		{	if (is.cdf) zlim = c (0, 1)
+			else zlim = c (0, max (v@fv) )
+		}
+		.plot_surface (v@x, v@y, v@fv, main=main, xlab=xlab, ylab=ylab, zlab=zlab, zlim=zlim, add=add, ..., .sf=sf)
 	}
 	else
-	{	if (missing (xlim) )
-			xlim = .$xlim [1,]
-		if (missing (ylim) )
-			ylim = .$xlim [2,]
-		n = rep_len (n, 2)
-		x = seq (xlim [1], xlim [2], length.out = n [1])
-		y = seq (ylim [1], ylim [2], length.out = n [2])
-		z = outer (x, y, .outer.cbind.ext, sf)
-		if (in3d)
-		{	if (missing (zlim) )
-			{	if (is.ccdf (sf) )
-					zlim = c (0, 1)
-				else
-					zlim = c (0, max (z) )
-			}
-			plot_surface (x, y, z, main=main, xlab=xlab, ylab=ylab, zlim=zlim, ...)
+	{	if (is.cpdmvc (sf) )
+			data = FALSE
+		else if (missing (data) )
+		{	if (add)
+				data = FALSE
+			else if ( (sf %$% "n") <= 2000)
+				data = TRUE
+			else
+				data = FALSE
+		}
 
+		if (data)
+		{	ps = (sf %$% "data")$x
+			if (missing (point.color) )
+			{	options = getOption ("probhat")
+				point.color = options$semi.fill.color
+			}
 		}
 		else
-		{	if (data)	p = sf %$% "x"
-			else p = NULL
-			.plot_cfield.ext (x, y, z, main=main, xlab=xlab, ylab=ylab, ..., .points=p)
-		}
+			ps = NULL
+		
+		.plot_cfield.ext (v@x, v@y, v@fv, main=main, xlab=xlab, ylab=ylab, add=add, ...,
+			.is.cdf=is.cdf,
+			.has.points=data, .points=ps, .point.color=point.color)
 	}
 }
 
-plot_cpd_tv = function (sf, ...,
+plot_cpd_tv = function (sf, iso=FALSE, ...,
 	main, xlab, ylab, zlab,
 	xlim, ylim, zlim,
-	reverse.z=FALSE)
+	z.reverse=FALSE)
 {	. = attributes (sf)
 	g = function (x, y, z)
 		sf (cbind (x, y, z) )
-	Jx = sf %$% "m" - 2
-	Jy = Jx + 1
-	Jz = Jx + 2
-	if (missing (xlim) ) xlim = .$xlim [1,]
-	if (missing (ylim) ) ylim = .$xlim [2,]
+	lims = range (sf)
+	if (missing (xlim) ) xlim = lims [1,]
+	if (missing (ylim) ) ylim = lims [2,]
 	if (missing (zlim) )
-	{	zlim = .$xlim [3,]
-		if (reverse.z) zlim = rev (zlim)
+	{	zlim = lims [3,]
+		if (z.reverse)
+			zlim = rev (zlim)
 	}
 	if (missing (main) ) main = ""
-	xlab = .mvvarname (sf, xlab, Jx)
-	ylab = .mvvarname (sf, ylab, Jy)
-	zlab = .mvvarname (sf, zlab, Jz)
-	
-	.plotf_cfield_3d.ext (g, xlim, ylim, zlim, ..., main=main, xlab=xlab, ylab=ylab, zlab=zlab)
+	xlab = .mvvarname (sf, xlab, 1)
+	ylab = .mvvarname (sf, ylab, 2)
+	zlab = .mvvarname (sf, zlab, 3)
+
+	if (iso)
+		.plotf_isosurface (g, xlim, ylim, zlim, ..., main=main, xlab=xlab, ylab=ylab, zlab=zlab)
+	else
+		.plotf_cfield_3d.ext (g, xlim, ylim, zlim, ..., main=main, xlab=xlab, ylab=ylab, zlab=zlab)
+}
+
+ph4.BVMatrix = function (sf, xlim, ylim, ..., n=10)
+{	n = rep_len (n, 2)
+	lims = range (sf)
+	if (missing (xlim) ) xlim = lims [1,]
+	if (missing (ylim) ) ylim = lims [2,]
+	x = seq (xlim [1], xlim [2], length.out = n [1])
+	y = seq (ylim [1], ylim [2], length.out = n [2])
+	fv = outer (x, y, .outer.cbind.ext, sf)
+	new ("BVMatrix", fv=fv, x=x, y=y)
 }
 
 .outer.cbind.ext = function (x, y, f)

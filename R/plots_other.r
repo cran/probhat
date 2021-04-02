@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2020
+#Copyright (C), Abby Spurdle, 2018 to 2021
 
 #This program is distributed without any warranty.
 
@@ -12,13 +12,12 @@
 #https://cran.r-project.org/web/licenses/GPL-2
 
 list.ckernels = function ()
-{	ks = vector ("list", 6)
-	ks [[1]] = biweight.ckernel ()
-	ks [[2]] = truncnorm.ckernel ()
-	ks [[3]] = epanechnikov.ckernel ()
-	ks [[4]] = triweight.ckernel ()
-	ks [[5]] = tricube.ckernel ()
-	ks [[6]] = bell.spline ()
+{	ks = vector ("list", 5)
+	ks [[1]] = BIWEIGHT.CKERNEL
+	ks [[2]] = TRGAUSSIAN.CKERNEL
+	ks [[3]] = EPANECHNIKOV.CKERNEL
+	ks [[4]] = TRIWEIGHT.CKERNEL
+	ks [[5]] = TRICUBE.CKERNEL
 	ks
 }
 
@@ -29,7 +28,7 @@ list.ckernels = function ()
 	abline (h=y, lty=3)
 }
 
-kernel.array = function (ks = list.ckernels (), ..., ref.line=TRUE, colors)
+plot_kernel_array = function (ks = list.ckernels (), ..., ref.line=TRUE, colors)
 {	n = length (ks)
 	if (missing (colors) )
 	{	options = getOption ("probhat")
@@ -39,11 +38,11 @@ kernel.array = function (ks = list.ckernels (), ..., ref.line=TRUE, colors)
 	for (i in 1:n)
 	{	for (j in 1:n)
 		{	if (ref.line)
-				y = ks [[i]]$pdf (0)
+				y = ks [[i]]@f (0)
 			else
 				y = NA
 			if (i == j)
-			{	.empty.kernel.plot (ks [[i]] %$% "name", y)
+			{	.empty.kernel.plot (ks [[i]]@ "name", y)
 				plot (ks [[i]], add=TRUE, fill.color = colors [i])
 				box ()
 				axis (1, at = c (-1, 0, 1) )
@@ -63,14 +62,14 @@ kernel.array = function (ks = list.ckernels (), ..., ref.line=TRUE, colors)
 	par (p0)
 }
 
-.plot.distribution.set = function (fs, legend, colors, ...)
+.plot.distribution.set = function (fs, wide, legend, colors, ...)
 {	if (is.pmfuv (fs [[1]]) || is.pdfuv (fs [[1]]) || is.ccdfuv (fs [[1]]) )
-		.plot.distribution.set.overlay (fs, legend, colors, ...)
+		.plot.distribution.set.overlay (fs, wide, legend, colors, ...)
 	else
 		.plot.distribution.set.stacked (fs, colors, ...)
 }
 
-.plot.distribution.set.overlay = function (fs, legend, colors, ...)
+.plot.distribution.set.overlay = function (fs, wide, legend, colors, ...)
 {	n = length (fs)
 	if (missing (colors) )
 	{	options = getOption ("probhat")
@@ -79,24 +78,25 @@ kernel.array = function (ks = list.ckernels (), ..., ref.line=TRUE, colors)
 	xlim = matrix (0, n, 2)
 	ymax = numeric (n)
 	for (i in 1:n)
-	{	xlim [i,] = fs [[i]] %$% "xlim"
+	{	xlim [i,] = range (fs [[i]])
 		x = seq (fs [[i]], n=200)
 		y = fs [[i]](x)
 		ymax [i] = max (y)
 	}
-	xlim = c (min (xlim [,1]), max (xlim [,2]) )
-	ylim = c (0, 1.025 * max (ymax) )
-	plot (fs [[1]], line.color=NA, fill.color = colors [1], xlim=xlim, ylim=ylim, ...)
-	if (n > 1)
-	{	for (i in 2:n)
-			plot (fs [[i]], line.color=NA, fill.color = colors [i], ..., add=TRUE)
+	XLIM = c (min (xlim [,1]), max (xlim [,2]) )
+	if (wide)
+	{	xlim [,1] = XLIM [1]
+		xlim [,2] = XLIM [2]
 	}
+	ylim = c (0, 1.025 * max (ymax) )
+	plot (fs [[1]], line.color=NA, fill.color=NA, xlim=XLIM, ylim=ylim, ...)
 	for (i in 1:n)
-		lines (fs [[i]])
+		plot (fs [[i]], xlim = xlim [i,], line.color=NA, fill.color = colors [i], ..., add=TRUE)
+	for (i in 1:n)
+		lines (fs [[i]], xlim = xlim [i,])
 	box ()
 	if (legend)
-	{	legend ("topright",, fs %$% "levnames", colors, bty="n")
-	}
+		legend ("topright",, fs %$% "levnames", colors, bty="n")
 }
 
 .plot.distribution.set.stacked = function (fs, nr, nc, colors, ...)
@@ -116,8 +116,37 @@ kernel.array = function (ks = list.ckernels (), ..., ref.line=TRUE, colors)
 	par (p0)
 }
 
-plot.ph3.gset = function (x, ..., legend=TRUE, colors)
-	.plot.distribution.set (x, legend, colors, ...)
+ph.plotf.ph4.gset = function (sfs, ..., span.win=FALSE, legend=TRUE, colors)
+	.plot.distribution.set (sfs, span.win, legend, colors, ...)
 
-plot.ph3.mset = function (x, ..., nr, nc, colors)
-	.plot.distribution.set.stacked (x, nr, nc, colors, ...)
+ph.plotf.ph4.mset = function (sfs, ..., nr, nc, colors)
+	.plot.distribution.set.stacked (sfs, nr, nc, colors, ...)
+
+ph.reflect.demo = function (both.dirs=FALSE)
+{	x = 5:8
+	y = c (5, 5, 4, 6)
+
+	if (both.dirs)
+		p0 = structure(c (4, 4, 5, 4, 4, 3, 2, 2), .Dim = c(4L, 2L) )
+	else
+		p0 = structure(c (4, 4, 4, 4, 6, 5, 4, 4), .Dim = c(4L, 2L) )
+	ref = .reflect.mv (c (TRUE, both.dirs), c (4, 2), 1, 4, cbind (x, y) )
+	L = c (-2.5, 8.5)
+
+	plot (x, y, pch=NA, xlim=L, ylim=L)
+	if (both.dirs)
+		rect (4, 2, 20, 20, border=NA, col="grey85")
+	else
+		rect (4, -20, 20, 20, border=NA, col="grey85")
+	box ()
+	for (i in 1:4)
+		lines (c (ref [i, 1], x [i]), c (ref [i, 2], y [i]), lty=2, col="grey60")
+	abline (v=0, h=0, lty=2, col="grey85")
+	if (both.dirs)
+		abline (h=2, lty=2)
+	abline (v=4, lty=2)
+	points (x, y, pch=16, xlim=L, ylim=L)
+
+	points (p0 [,1], p0 [,2], pch=4, lwd=2, cex=1.5, col="darkblue")
+	points (ref [,1], ref [,2], pch=16)
+}

@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2020
+#Copyright (C), Abby Spurdle, 2018 to 2021
 
 #This program is distributed without any warranty.
 
@@ -16,38 +16,88 @@
 		stop ("spline models need >= 10 control points")
 }
 
-.cksuv = function (f, classes, is.cdf, is.spline, nc, bw.method, kernel, bw, smoothness, x, w)
-{   	variable.name = .varname (x)
+.cksuv = function (f, classes, is.cdf, is.spline, nc, XLIM, bw.method, kernel, bw, smoothness, x, w, tail)
+{   	xname = .varname (x)
 	.test.nc (nc)
 	x = .val.x.uv (x, TRUE)
 	n = length (x)
 	kernel = .val.k (kernel)
-	is.weighted = (! is.na (w [1]) )
+	is.weighted = (! (missing (w) || is.na (w [1]) ) )
 	w = .val.w (is.weighted, n, w)
 	xlim = range (x)
 	if (missing (bw) )
 		bw = auto.cbw (x, bw.method=bw.method, smoothness=smoothness)
 	else
 		smoothness = NA
-	xlim = xlim + c (-0.5, 0.5) * bw
-	f = EXTEND (f, classes,
-		variable.name, is.spline=FALSE, is.weighted, spline.function=NA, kernel,
-		bw, smoothness, xlim, n, x, w)
-	if (is.spline)
-	{	f %$% "spline.function" = .spline (f, is.cdf, nc)
-		f %$% "is.spline" = TRUE
+	hbw = bw / 2
+	xlim = xlim + c (-hbw, hbw)
+
+	if (missing (tail) )
+		.low = tail = NA
+	else
+	{	tail = .val.tail (tail)
+		.low = (tail == "lower")
 	}
-	f
+
+	XLIM = .val.XLIM.uv (XLIM)
+	.is.trunc = .is.trunc.uv (hbw, XLIM, xlim)
+	.any.trunc = any (.is.trunc)
+
+	.scalef = .xpnd = NA
+	.any.trunc.lower = .is.trunc.lower = FALSE
+
+	if (.any.trunc)
+	{	.check.x.inside.uv (.is.trunc, XLIM, x)
+
+		xlim = .update.xlim (.is.trunc, XLIM, xlim)
+		.xpnd = .update.x.uv (.is.trunc, hbw, XLIM, n, x, w, is.weighted)
+		if (is.cdf)
+		{	.is.trunc.lower = .is.trunc.lower.side (rbind (.is.trunc), .low)
+			.any.trunc.lower = any (.is.trunc.lower)
+		}
+		else
+		{	subv = .pwith.eval.uv (bw, kernel@F, .xpnd$n, .xpnd$x, XLIM [1], XLIM [2],
+				is.weighted, .xpnd$w)
+			.scalef = 1 / subv
+		}
+	}
+	data = list (n=n, xlim=xlim, x=x, w=w)
+
+	sf = .EXTEND (f, classes,
+		.const.cdf.lower=0,
+		.any.trunc.lower, .is.trunc.lower,
+		.any.trunc, .is.trunc, .xpnd, .scalef,
+		.low,
+		xname, XLIM, is.spline=FALSE, is.weighted, tail, spline.function=NA, kernel,
+		bw, smoothness, n0=n, data)
+	if (is.cdf)
+	{	if (.any.trunc)
+		{	if (.any.trunc.lower)
+			{	lo = sf (.cdf.lower.side (.low, rbind (xlim) ), .ignore.trunc=TRUE)
+				sf %$% ".const.cdf.lower" = lo
+			}
+			else
+				lo = 0
+			hi = sf (.cdf.upper.side (.low, rbind (xlim) ), .ignore.trunc=TRUE)
+			sf %$% ".scalef" = 1 / (hi - lo)
+		}
+	}
+	if (is.spline)
+	{	sf %$% "spline.function" = .spline (sf, is.cdf, nc, .low)
+		sf %$% "is.spline" = TRUE
+	}
+	sf
 }
 
-.cksmv = function (f, classes, bw.method, kernel, bw, smoothness, x, w, init.class="mv")
-{   	variable.names = .varnames (x)
+.cksmv = function (f, classes, XLIM, bw.method, kernel, bw, smoothness, x, w, init.class="mv", is.cdf=FALSE, tail)
+{   	is.cond = (init.class == "c" || init.class == "mvc")
+	xnames = .varnames (x, "x", is.cond)
 	x = .val.x.mv (x)
-	colnames (x) = variable.names
+	colnames (x) = xnames
 	n = nrow (x)
 	m = ncol (x)
 	kernel = .val.k (kernel)
-	is.weighted = (! is.na (w [1]) )
+	is.weighted = (! (missing (w) || is.na (w [1]) ) )
 	w = .val.w (is.weighted, n, w)
 	xlim = matrix (0, m, 2)
 	for (j in 1:m)
@@ -61,32 +111,83 @@
 	{	bw = .val.params (m, bw)
 		smoothness = rep (NA, m)
 	}
+	hbw = bw / 2
 	xlim = xlim + outer (bw, c (-0.5, 0.5) )
-	if (init.class == "mv")
-		EXTEND (f, classes,
-			variable.names, is.weighted, kernel, bw, smoothness, xlim, n, m, x, w)
+
+	if (missing (tail) )
+		.low = tail = NA
+	else if (init.class == "mv")
+	{	tail = .val.tail (tail, m)
+		.low = (tail == "lower")
+	}
+
+	if (init.class != "ch")
+	{	.any.trunc.lower = .is.trunc.lower = FALSE
+		XLIM = .val.XLIM.mv (XLIM, m)
+		.is.trunc = .is.trunc.mv (hbw, XLIM, xlim)
+		.any.trunc = any (.is.trunc)
+	
+		.scalef = .xpnd = NA
+		if (.any.trunc)
+		{	.check.x.inside.mv (.is.trunc, XLIM, m, x)
+
+			xlim = .update.xlim (.is.trunc, XLIM, xlim)
+			.xpnd = .update.x.mv (.is.trunc, hbw, XLIM, n, m, x, w, is.weighted)
+
+			if (init.class == "mv")
+			{	if (is.cdf)
+				{	.is.trunc.lower = .is.trunc.lower.side (.is.trunc, .low)
+					.any.trunc.lower = any (.is.trunc.lower)
+				}
+				else
+				{	subv = .pwith.eval.mv (bw, kernel@F, .xpnd$n, m, .xpnd$x, XLIM [,1], XLIM [,2],
+						is.weighted, .xpnd$w)
+					.scalef = 1 / subv
+				}
+			}
+		}
+	}
+	data = list (n=n, xlim=xlim, x=x, w=w)
+
+	sf = if (init.class == "mv")
+		.EXTEND (f, classes,
+			.any.trunc.lower, .is.trunc.lower,
+			.any.trunc, .is.trunc, .scalef, .xpnd,
+			.low,
+			xnames, XLIM, is.weighted, tail, kernel, bw, smoothness, m, n0=n, data)
 	else if (init.class == "c")
-		EXTEND (f, classes,
-			.constant=NA, .v=NA,
-			M=NA, ncon=NA, variable.name=NA, variable.names,
-			is.spline=FALSE, is.weighted, spline.function=NA, conditions=NA,
-			kernel, bw, smoothness, xlim, n, m, x, w)
+		.EXTEND (f, classes,
+			.const.cdf.lower=0,
+			.any.trunc.lower, .is.trunc.lower,
+			.any.trunc, .is.trunc, .scalef, .xpnd,
+			.constant=NA, .v=NA, .low=NA,
+			M=NA, ncon=NA, xnames, XLIM,
+			is.spline=FALSE, is.weighted, tail, spline.function=NA, conditions=NA,
+			kernel, bw, smoothness, m, n0=0, data)
 	else if (init.class == "mvc")
-		EXTEND (f, classes,
-			.constant=NA, .v=NA,
-			M=NA, ncon=NA, variable.names,
-			is.weighted, conditions=NA,
-			kernel, bw, smoothness, xlim, n, m, x, w)
+		.EXTEND (f, classes,
+			.any.trunc.lower, .is.trunc.lower,
+			.any.trunc, .is.trunc, .scalef, .xpnd,
+			.constant=NA, .v=NA, .low=NA,
+			M=NA, ncon=NA, xnames, XLIM,
+			is.weighted, tail, conditions=NA,
+			kernel, bw, smoothness, m, n0=0, data)
 	else
-		EXTEND (f, classes,
-			variable.names, is.weighted, nc=NA, qf1=NA, kernel, bw, smoothness, xlim, n, m, x, w)
+		.EXTEND (f, classes,
+			xnames, is.weighted, nc=NA, qf1=NA, kernel, bw, smoothness, m, n0=n, data)
+	if (is.cdf && init.class == "mv")
+	{	if (.any.trunc)
+			sf %$% ".scalef" = .cdf.scalef (sf, m)
+	}
+	sf
 }
 
-.cksc = function (f, is.cdf, is.spline, nc, preserve.range, conditions, warning, init.class="c")
+.cksc = function (f, is.cdf, is.spline, nc, preserve.range, conditions, as.cset, warning, init.class="c")
 {	m = f %$% "m"
 	if (missing (conditions) )
 		stop ("conditions required")
-	ncon = length (conditions)
+	conditions = rbind (conditions)
+	ncon = ncol (conditions)
 	if (ncon == 0)
 		stop ("conditional models need at least one condition")
 	M = m - ncon
@@ -94,145 +195,225 @@
 		stop ("\nuv-conditional models need one random variable\nor use mv-conditional models...")
 	if (ncon < 0 || ncon > m - 1)
 		stop ("length (conditions) not in interval [0, m - 1]")
-	else if (ncon > 0)
-	{	names = names (conditions)
+	preserve.range = rep_len (preserve.range, M)
+	if (is.cdf)
+	{	tail = .val.tail (f %$% "tail", M)
+		f %$% ".low" = (tail == "lower")
+		f %$% "tail" = tail
+	}
+	if (ncon > 0)
+	{	names = colnames (conditions)
 		if (is.null (names) )
-			names (conditions) = (f %$% "variable.names")[1:ncon]
+			names (conditions) = (f %$% "xnames")[1:ncon]
 		else
-		{	J = match (names, f %$% "variable.names")
+		{	J = match (names, f %$% "xnames")
 			if (any (is.na (J) ) )
 				stop ("condition names not in variable names")
 			J = c (J, (1:m)[-J])
-			f %$% "variable.names" = (f %$% "variable.names")[J]
-			f %$% "xlim" = (f %$% "xlim")[J,]
+
+			f %$% "xnames" = (f %$% "xnames")[J]
+			f %$% "XLIM" = (f %$% "XLIM")[J,, drop=FALSE]
 			f %$% "bw" = (f %$% "bw")[J]
 			f %$% "smoothness" = (f %$% "smoothness")[J]
-			f %$% "x" = (f %$% "x")[,J]
+
+			if (f %$% ".any.trunc")
+			{	f %$% ".is.trunc" = (f %$% ".is.trunc")[J,, drop=FALSE]
+				f %$% ".xpnd" = .sub.data.col (f %$% ".xpnd", J)
+			}
+			f %$% "data" = .sub.data.col (f %$% "data", J)
 		}
 	}
 	f %$% "M" = M
 	f %$% "ncon" = ncon
 	f %$% "conditions" = conditions
-	K = .con.sub (ncon, conditions, f %$% "bw", f %$% "n", f %$% "x", f %$% "w")
-	if (K$n == 0)
-	{	warning ("no observations within conditional window")
-		NULL
+	f %$% "n0" = f %$% "n"
+
+	CONS = 1:ncon
+	RVS = (ncon + 1):m
+
+	if (f %$% ".any.trunc")
+	{	.check.x.inside.mv ( (f %$% ".is.trunc")[CONS,, drop=FALSE], (f %$% "XLIM")[CONS,, drop=FALSE], ncon, conditions, "condition")
+
+		if (is.cdf)
+		{	f %$% ".is.trunc.lower" = .is.trunc.lower.side ( (f %$% ".is.trunc")[RVS,, drop=FALSE], f %$% ".low")
+			f %$% ".any.trunc.lower" = any (f %$% ".is.trunc.lower")
+		}
+	}
+
+	nnull = 0
+	nsets = nrow (conditions)
+
+	VF = vector ("list", nsets)
+	data0 = f %$% "data"
+	for (ith.set in seq_len (nsets) )
+	{	ith.conditions = conditions [ith.set,]
+		data = f %$% "data"
+		K = .con.sub (ncon, ith.conditions, f %$% "bw", data$n, data$x, data$w)
+		if (K$n == 0)
+			nnull = nnull + 1
+		else
+		{	new.f = f
+
+			data$n = K$n
+			data$x = K$x
+			data$w = K$w
+			xlim = data$xlim
+			for (j in 1:m)
+			{	if (j > ncon && preserve.range [j - ncon])
+					0
+				else
+					xlim [j,] = range (data$x [,j]) + c (-0.5, 0.5) * (new.f %$% "bw")[j]
+			}
+			if (f %$% ".any.trunc")
+				xlim = .update.xlim (f %$% ".is.trunc", f %$% "XLIM", xlim)
+			data$xlim = xlim
+			new.f %$% "data" = data
+
+			if (f %$% ".any.trunc")
+			{	xpnd = f %$% ".xpnd"
+				K = .con.sub (ncon, ith.conditions, f %$% "bw", xpnd$n, xpnd$x, xpnd$w)
+				xpnd$n = K$n
+				xpnd$x = K$x
+				xpnd$w = K$w
+				new.f %$% ".xpnd" = xpnd
+				fdata = xpnd
+
+				. = attributes (new.f)
+				if (is.cdf)
+				{	if (init.class == "c")
+					{	if (.$.low) u = .$XLIM [m, 1]
+						else u = .$XLIM [m, 2]
+						new.f %$% "const.cdf.lower" =
+							.cdfuv.cks.eval.scalar (.$is.weighted, .$kernel@F, .$bw, xpnd$n, xpnd$x, xpnd$w, f %$% ".low", u)
+					}
+					else
+						new.f %$% "scalef" = 0
+				}
+				else
+				{	subv.top = .pwith.eval.mv (.$bw, .$kernel@F,
+						xpnd$n, m, xpnd$x, .$XLIM [,1], .$XLIM [,2],
+						.$is.weighted, xpnd$w)
+					subv.btm = .pwith.eval.mv (.$bw [CONS], .$kernel@F,
+						xpnd$n, ncon, xpnd$x [,CONS, drop=FALSE], .$XLIM [CONS, 1], .$XLIM [CONS, 2],
+						.$is.weighted, xpnd$w)
+					scalef = subv.btm / subv.top
+					new.f %$% ".scalef" = scalef
+				}
+			}
+			else
+				fdata = data
+
+			new.f %$% ".v" = .precompute.cksc.v (ncon, ith.conditions, (new.f %$% "kernel")@f, new.f %$% "bw", fdata$n, fdata$x)
+			new.f %$% ".constant" = .sumk (new.f %$% "is.weighted", fdata$n, fdata$w, new.f %$% ".v")
+			if (is.cdf)
+			{	if (f %$% ".any.trunc")
+				{	if (init.class == "c")
+					{	low = f %$% ".low"
+						if (f %$% ".any.trunc.lower")
+						{	xlim = data$xlim
+							lo = new.f (.cdf.lower.side (low, xlim [RVS,, drop=FALSE]), .ignore.trunc=TRUE)
+						}
+						else
+							lo = 0
+						hi = new.f (.cdf.upper.side (low, xlim [RVS,, drop=FALSE]), .ignore.trunc=TRUE)
+						new.f %$% ".const.cdf.lower" = lo
+						new.f %$% ".scalef" = 1 / (hi - lo)
+					}
+					else
+						new.f %$% ".scalef" = .cdf.scalef (new.f, M)
+				}
+			}
+
+			if (init.class == "c" && is.spline)
+			{	new.f %$% "spline.function" = .spline (new.f, is.ccdf (new.f), nc, new.f %$% ".low")
+				new.f %$% "is.spline" = TRUE
+			}
+			VF [[ith.set]] = new.f
+		}
+	}
+	if (nsets == 1 && ! as.cset)
+	{	if (nnull > 0 && warning)
+			warning ("null model, no observations within conditional window")
+		VF [[1]]
 	}
 	else
-	{	f %$% "n" = K$n
-		f %$% "x" = K$x
-		f %$% "w" = K$w
-		if (! preserve.range)
-		{	if (init.class == "c")
-				xlim = range (K$x [,m]) + c (-0.5, 0.5) * (f %$% "bw")[m]
-			else
-			{	xlim = matrix (0, M, 2)
-				for (j in 1:M)
-					xlim [j,] = range ( (f %$% "x")[,ncon + j]) + c (-0.5, 0.5) * (f %$% "bw")[ncon + j]
-			}
-			f %$% "xlim" = xlim
-		}
-		else
-			f %$% "xlim" = (f %$% "xlim")[(ncon + 1):m,]
-		f %$% ".v" = .precompute.cksc.v (ncon, conditions, (f %$% "kernel")$pdf, f %$% "bw", f %$% "n", f %$% "x")
-		f %$% ".constant" = .sumk (f %$% "is.weighted", f %$% "n", f %$% "w", f %$% ".v")
-		if (init.class == "c")
-		{	f %$% "variable.name" = (f %$% "variable.names")[m]
-			f %$% "variable.names" = NULL
-			if (is.spline)
-			{	f %$% "spline.function" = .spline (f, is.ccdf (f), nc)
-				f %$% "is.spline" = TRUE
-			}
-		}
-		f
+	{	if (nnull > 0 && warning)
+			warning (sprintf ("%i null models, no observations within conditional windows", nnull) )
+		VF
 	}
 }
 
 .cksc.2 = function (f, classes, is.cdf,
-	is.spline, nc, preserve.range, conditions, bw.method, kernel, bw, smoothness, x, w, warning)
+	is.spline, nc, preserve.range, conditions, XLIM, bw.method, kernel, bw, smoothness, x, w, as.cset, warning, tail)
 {	.test.nc (nc)
-	f = .cksmv (f, classes, bw.method, kernel, bw, smoothness, x, w, "c")
-	.cksc (f, is.cdf, is.spline, nc, preserve.range, conditions, warning)
+	f = .cksmv (f, classes, XLIM, bw.method, kernel, bw, smoothness, x, w, "c", FALSE, tail)
+	.cksc (f, is.cdf, is.spline, nc, preserve.range, conditions, as.cset, warning)
 }
 
-.cksmvc.2 = function (f, classes,
-	preserve.range, conditions, bw.method, kernel, bw, smoothness, x, w, warning)
-{	f = .cksmv (f, classes, bw.method, kernel, bw, smoothness, x, w, "mvc")
-	.cksc (f, NULL, NULL, NULL, preserve.range, conditions, warning, "mvc")
+.cksmvc.2 = function (f, classes, is.cdf,
+	preserve.range, conditions, XLIM, bw.method, kernel, bw, smoothness, x, w, as.cset, warning, tail)
+{	f = .cksmv (f, classes, XLIM, bw.method, kernel, bw, smoothness, x, w, "mvc", FALSE, tail)
+	.cksc (f, is.cdf, NULL, NULL, preserve.range, conditions, as.cset, warning, "mvc")
 }
 
-.qfuv.cks = function (F, F.inv, nc, bw.method, kernel, bw, smoothness, x, w)
-{	F = .cksuv (F, .CV.cdfuv.cks, TRUE, TRUE, nc, bw.method, kernel, bw, smoothness, x, w)
+.qfuv.cks = function (F, F.inv, nc, XLIM, bw.method, kernel, bw, smoothness, x, w, tail)
+{	F = .cksuv (F, .CV.cdfuv.cks, TRUE, TRUE, nc, XLIM, bw.method, kernel, bw, smoothness, x, w, tail)
 	attributes (F.inv) = attributes (F)
 	F.inv %$% "class" = .CV.qfuv.cks
 	F.inv %$% "spline.function" =
-		.modified.spline.transposed (F %$% "spline.function" %$% "cx", F %$% "spline.function" %$% "cy")
+		.modified.spline.transposed (F %$% "spline.function" %$% "cx", F %$% "spline.function" %$% "cy", F %$% ".low")
 	F.inv
 }
 
-.qfc.cks = function (F, F.inv, nc, preserve.range, conditions, bw.method, kernel, bw, smoothness, x, w, warning)
-{	F = .cksc.2 (F, .CV.cdfuv.cks, TRUE, TRUE, nc, preserve.range, conditions, bw.method, kernel, bw, smoothness, x, w, warning)
+.qfc.cks = function (F, F.inv, nc, preserve.range, conditions, XLIM, bw.method, kernel, bw, smoothness, x, w, as.cset, warning, tail)
+{	F = .cksc.2 (F, .CV.cdfc.cks, TRUE, TRUE, nc, preserve.range, conditions, XLIM, bw.method, kernel, bw, smoothness, x, w, as.cset, warning, tail)
 	if (is.null (F) )
-		F
+		NULL
+	else if (is.ccdf (F) )
+		.qfc.cks.ext (F, F.inv)
 	else
-	{	attributes (F.inv) = attributes (F)
-		F.inv %$% "class" = .CV.qfc.cks
-		F.inv %$% "spline.function" =
-			.modified.spline.transposed (F %$% "spline.function" %$% "cx", F %$% "spline.function" %$% "cy")
-		F.inv
+	{	nsets = length (F)
+		for (i in seq_len (nsets) )
+		{	if (! is.null (F [[i]]) )
+				F [[i]] = .qfc.cks.ext (F [[i]], F.inv)
+		}
+		F
 	}
+}
+
+.qfc.cks.ext = function (F, F.inv)
+{	attributes (F.inv) = attributes (F)
+	F.inv %$% "class" = .CV.qfc.cks
+	F.inv %$% "spline.function" =
+		.modified.spline.transposed (F %$% "spline.function" %$% "cx", F %$% "spline.function" %$% "cy", F %$% ".low")
+	F.inv
 }
 
 .chqf.cks = function (chqf.f, nc, bw.method, kernel, bw, smoothness, x, w)
 {	.test.nc (nc)
-	chqf.f = .cksmv (chqf.f, .CV.chqf.cks, bw.method, kernel, bw, smoothness, x, w, "ch")
+	chqf.f = .cksmv (chqf.f, .CV.chqf.cks, NULL, bw.method, kernel, bw, smoothness, x, w, "ch")
 	chqf.f %$% "nc" = nc
 	chqf.f %$% "qf1" = .qfc.from.chqf.cks (chqf.f, 1)
 	chqf.f
 }
 
-.uv.from.mv.cks = function (f.mv, J)
-{	if (is.pdfmv (f.mv) && is.cks (f.mv) )
-	{	f = .pdfuv.cks.eval
-		class = c ("PRIVATE_OBJECT", .CV.pdfuv.cks)
-	}
-	else if (is.ccdfmv (f.mv) && is.cks (f.mv) )
-	{	f = .cdfuv.cks.eval
-		class = c ("PRIVATE_OBJECT", .CV.cdfuv.cks)
-	}
-	else
-		stop ("error in .uv.from.mv.cks")
-
-	. = attributes (f.mv)
-	attributes (f) = list (
-		class = class,
-		variable.name = .$variable.names [J],
-		is.spline = FALSE,
-		is.weighted = .$is.weighted,
-		spline.function = NA,
-		kernel = .$kernel,
-		bw = .$bw [J],
-		xlim = .$xlim [J,],
-		n = .$n,
-		x = .$x [,J],
-		w = .$w)
-	f %$% "spline.function" = .spline (f, is.ccdf (f), 30)
-	f %$% "is.spline" = TRUE
-	f
-}
-
 .qfc.from.chqf.cks = function (chqf.f, J, conditions=NA)
 {	. = attributes (chqf.f)
-	F = .cdfc.cks.eval.2
-	F.inv = .qfc.cks.eval.2
+	F = .cdfc4chqf.cks.eval
+	F.inv = .qfc4chqf.cks.eval
+	data = .$data
+	xlim = data$xlim
 	if (is.na (conditions [1]) )
-	{	K = list (n = .$n, x = .$x, w = .$w)
-		xlim = .$xlim [J,]
-	}
+		K = list (n = data$n, x = data$x, w = data$w)
 	else
-	{	K = .con.sub (J - 1, conditions, .$bw, .$n, .$x, .$w)
-		xlim = range (K$x [,J]) + c (-0.5, 0.5) * .$bw [J]
+	{	K = .con.sub (J - 1, conditions, .$bw, data$n, data$x, data$w)
+		xlim [J,] = range (K$x [,J]) + c (-0.5, 0.5) * .$bw [J]
 	}
+	data = list (
+		xlim = xlim [1:J,, drop=FALSE],
+		n = K$n,
+		x = K$x [,1:J, drop=FALSE],
+		w = K$w)
 	attributes (F) = list (
 		class = .CV.cdfc.cks,
 		ncon = J - 1,
@@ -240,10 +421,8 @@
 		nc = .$nc,
 		kernel = .$kernel,
 		bw = .$bw [1:J],
-		xlim = xlim,
-		n = K$n,
-		x = K$x [,1:J, drop=FALSE],
-		w = K$w,
+		m = J,
+		data = data,
 		conditions = conditions)
 	attributes (F.inv) = attributes (F)
 	class (F.inv) = .CV.qfc.cks

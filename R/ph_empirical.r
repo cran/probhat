@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2020
+#Copyright (C), Abby Spurdle, 2018 to 2021
 
 #This program is distributed without any warranty.
 
@@ -11,8 +11,8 @@
 #Also, this license should be available at:
 #https://cran.r-project.org/web/licenses/GPL-2
 
-.el = function (f, classes, x, w, inverse=FALSE)
-{	variable.name = .varname (x)
+.el = function (f, classes, x, w, inverse)
+{	xname = .varname (x)
 	x = .val.x.uv (x)
 	n = length (x)
 	if (n < 2)
@@ -25,10 +25,11 @@
 			randomize = (.any.duplicates (x) )
 		}
 	}
-	is.weighted = (! is.na (w [1]) )
+	is.weighted = (! (missing (w) || is.na (w [1]) ) )
 	x.order = order (x)
 	x = x [x.order]
 	xlim = c (x [1], x [n])
+
 	if (is.weighted)
 	{	w = .val.w (is.weighted, n, w)
 		w = w [x.order]
@@ -38,29 +39,33 @@
 		y = cumsum (c (0, intw) )
 	}
 	else
+	{	w = NA
 		y = (0:(n - 1) ) / (n - 1)
+	}
 	y [n] = 1
 	if (inverse)
 		spline.function = .incr.chs (y, x)
 	else
 		spline.function = .incr.chs (x, y, outside = c (0, 1) )
-	EXTEND (f, classes,
-		variable.name, is.weighted, spline.function, xlim, n, x, w)
+	.EXTEND (f, classes,
+		xname, is.weighted, spline.function, xlim, n, x, w)
 }
  
-cdfuv.el = function (x, ..., w=NA)
-{	F = function (q)
-	{	. = THAT ()
-		.$spline.function (q)
+cdfuv.el = function (x, ..., w)
+{	F = function (x)
+	{	. = .THAT ()
+		.$spline.function (x)
 	}
-	.el (F, .CV.cdfuv.el, x, w)
+	.arg.error (...)
+	.el (F, .CV.cdfuv.el, x, w, FALSE)
 }
 
-qfuv.el = function (x, ..., w=NA)
+qfuv.el = function (x, ..., w)
 {	F.inv = function (p)
-	{	. = THAT ()
+	{	. = .THAT ()
 		.test.y.ok (p)
 		.$spline.function (p)
 	}
+	.arg.error (...)
   	.el (F.inv, .CV.qfuv.el, x, w, TRUE)
 }

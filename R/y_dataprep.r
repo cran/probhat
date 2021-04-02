@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2020
+#Copyright (C), Abby Spurdle, 2018 to 2021
 
 #This program is distributed without any warranty.
 
@@ -11,7 +11,7 @@
 #Also, this license should be available at:
 #https://cran.r-project.org/web/licenses/GPL-2
 
-ph.data.prep = function (..., eval=TRUE, echo=FALSE)
+prep.ph.data = function (..., eval=TRUE, echo=FALSE)
 {	lines = character (31)
 	lines [1] = 'data (Traffic, package="MASS")'
 	lines [2] = 'traffic.table <- table (Traffic$y [Traffic$limit=="yes"])'
@@ -19,18 +19,18 @@ ph.data.prep = function (..., eval=TRUE, echo=FALSE)
 	lines [4] = 'traffic.bins <- cbind (naccidents=traffic.bins)'
 	lines [5] = 'traffic.freq <- as.vector (traffic.table)'
 	lines [6] = ''
-	lines [7] = 'trees <- as.matrix (datasets::trees)[,c (2, 1, 3)]'
-	lines [8] = 'colnames (trees) <- tolower (colnames (trees) )'
+	lines [7] = 'trees2 <- as.matrix (datasets::trees)[,c (2, 1, 3)]'
+	lines [8] = 'colnames (trees2) <- tolower (colnames (trees2) )'
 	lines [9] = '#Height (-> m)'
-	lines [10] = 'trees [,"height"] <- 0.3048 * trees [,"height"]'
+	lines [10] = 'trees2 [,"height"] <- 0.3048 * trees2 [,"height"]'
 	lines [11] = '#Girth (-> cm)'
-	lines [12] = 'trees [,"girth"] <- 2.54 * trees [,"girth"]'
+	lines [12] = 'trees2 [,"girth"] <- 2.54 * trees2 [,"girth"]'
 	lines [13] = '#Volume (-> m ^ 3)'
-	lines [14] = 'trees [,"volume"] <- 0.0283168 * trees [,"volume"]'
+	lines [14] = 'trees2 [,"volume"] <- 0.0283168 * trees2 [,"volume"]'
 	lines [15] = ''
-	lines [16] = 'height <- trees [,"height", drop=FALSE]'
+	lines [16] = 'height <- trees2 [,"height", drop=FALSE]'
 	lines [17] = ''
-	lines [18] = 'quakes <- as.matrix (datasets::quakes)[,c (2, 1, 3:4)]'
+	lines [18] = 'quakes2 <- as.matrix (datasets::quakes)[,c (2, 1, 3:4)]'
 	lines [19] = ''
 	lines [20] = 'crimes <- cbind (state.x77 [,1, drop=FALSE] * 1e3, as.matrix (USArrests [,-3]) / 1e5)'
 	lines [21] = ''

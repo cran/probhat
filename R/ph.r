@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2020
+#Copyright (C), Abby Spurdle, 2018 to 2021
 
 #This program is distributed without any warranty.
 
@@ -11,12 +11,7 @@
 #Also, this license should be available at:
 #https://cran.r-project.org/web/licenses/GPL-2
 
-.KV.pmf = c ("pmfuv", "dpduv", "pmf", "dpd", "phob")
-.KV.dcdf = c ("dcdfuv", "dpduv", "dcdf", "dpd", "phob")
-.KV.pdf = c ("pcfuv", "cpduv", "pdf", "cpd", "phob")
-.KV.ccdf = c ("ccdfuv", "cpduv", "ccdf", "cpd", "phob")
-
-.CV = c ("phmodel", "phob")
+.CV = c ("phmodel", "phpd", "phob")
 
 .CV.pmfuv.dks = c ("pmfuv.dks", "dksuv", "dks", "pmfuv", "dpduv", "pmf", "dpd", .CV)
 .CV.cdfuv.dks = c ("cdfuv.dks", "dksuv", "dks", "dcdfuv", "dpduv", "dcdf", "dpd", .CV)
@@ -37,12 +32,20 @@
 .CV.pmfuv.cat = c ("pmfuv.cat", "catuv", "cat", "pmfuv", "dpduv", "pmf", "dpd", .CV)
 .CV.cdfuv.cat = c ("cdfuv.cat", "catuv", "cat", "dcdfuv", "dpduv", "dcdf", "dpd", .CV)
 .CV.qfuv.cat = c ("qfuv.cat", "catuv", "cat", "dqfuv", "dpduv", "dqf", "dpd", .CV)
-.CV.pmfc.cat = c ("pmfc.cat", "catc", "catuv", "cat", "pmfc", "pmfuv", "dpdc", "dpduv", "pmf", "dpd", .CV)
-.CV.cdfc.cat = c ("cdfc.cat", "catc", "catuv", "cat", "dcdfc", "dcdfuv", "dpdc", "dpduv", "dcdf", "dpd", .CV)
-.CV.qfc.cat = c ("qfc.cat", "catc", "catuv", "cat", "dqfc", "dqfuv", "dpdc", "dpduv", "dqf", "dpd", .CV)
+.CV.pmfc.cat = c ("pmfc.cat", "catc", "cat", "pmfc", "pmfuv", "dpdc", "dpduv", "pmf", "dpd", .CV)
+.CV.cdfc.cat = c ("cdfc.cat", "catc", "cat", "dcdfc", "dcdfuv", "dpdc", "dpduv", "dcdf", "dpd", .CV)
+.CV.qfc.cat = c ("qfc.cat", "catc", "cat", "dqfc", "dqfuv", "dpdc", "dpduv", "dqf", "dpd", .CV)
 
 .CV.cdfuv.el = c ("cdfuv.el", "eluv", "el", "ccdfuv", "cpduv", "ccdf", "cpd", .CV)
 .CV.qfuv.el = c ("qfuv.el", "eluv", "el", "cqfuv", "cpduv", "cqf", "cpd", .CV)
+
+.CV.pmfc.gmix = c ("pmfc.gmix", "gmixc", "gmix", "pmfc", "pmfuv", "dpdc", "dpduv", "pmf", "dpd", .CV)
+.CV.cdfc.gmix = c ("cdfc.gmix", "gmixc", "gmix", "dcdfc", "dcdfuv", "dpdc", "dpduv", "dcdf", "dpd", .CV)
+.CV.qfc.gmix = c ("qfc.gmix", "gmixc", "gmix", "dqfc", "dqfuv", "dpdc", "dpduv", "dqf", "dpd", .CV)
+
+.CV.pdfc.xmix = c ("pdfc.xmix", "xmixc", "xmix", "pdfc", "cpdc", "pdfuv", "cpduv", "pdf", "cpd", .CV)
+.CV.cdfc.xmix = c ("cdfc.xmix", "xmixc", "xmix", "ccdfc", "cpdc", "ccdfuv", "cpduv", "ccdf", "cpd", .CV)
+.CV.qfc.xmix = c ("qfc.xmix", "xmixc", "xmix", "cqfc", "cpdc", "cqfuv", "cpduv", "cqf", "cpd", .CV)
 
 .inc = function (sf, include, class0, class1)
 {	if (include) (inherits (sf, class0) || inherits (sf, class1) )
@@ -60,88 +63,158 @@ cdf.cat = function (...) cdfuv.cat (...)
 qf.cat = function (...) qfuv.cat (...)
 cdf.el  = function (...) cdfuv.el (...)
 qf.el = function (...) qfuv.el (...)
-dfreq = function (...) pmfuv.dks (..., freq=TRUE)
-gfreq = function (...) pmfuv.cat (..., freq=TRUE)
 
-is.phob = function (xf) inherits (xf, "phob")
-is.phmodel = function (xf) inherits (xf, "phmodel")
+is.phob = function (object) inherits (object, "phob")
+is.phpd = function (object) inherits (object, "phpd")
+is.phmodel = function (object) inherits (object, "phmodel")
 
-is.dpd = function (xf) inherits (xf, "dpd")
-is.cpd = function (xf) inherits (xf, "cpd")
+is.dpd = function (object) inherits (object, "dpd")
+is.cpd = function (object) inherits (object, "cpd")
 
-is.pmf = function (xf) inherits (xf, "pmf")
-is.dcdf = function (xf) inherits (xf, "dcdf")
-is.dqf = function (xf) inherits (xf, "dqf")
-is.pdf = function (xf) inherits (xf, "pdf")
-is.ccdf = function (xf) inherits (xf, "ccdf")
-is.cqf = function (xf) inherits (xf, "cqf")
-is.cchqf = function (xf) inherits (xf, "cchqf")
+is.pmf = function (object) inherits (object, "pmf")
+is.dcdf = function (object) inherits (object, "dcdf")
+is.dqf = function (object) inherits (object, "dqf")
+is.pdf = function (object) inherits (object, "pdf")
+is.ccdf = function (object) inherits (object, "ccdf")
+is.cqf = function (object) inherits (object, "cqf")
+is.cchqf = function (object) inherits (object, "cchqf")
 
-is.dpduv = function (xf, include.conditional=TRUE) .inc (xf, include.conditional, "dpduv", "dpdc")
-is.dpdc = function (xf, include.multivariate=TRUE) .inc (xf, include.multivariate, "dpdc", "dpdmvc")
-is.cpduv = function (xf, include.conditional=TRUE) .inc (xf, include.conditional, "cpduv", "cpdc")
-is.cpdmv = function (xf, include.conditional=TRUE) .inc (xf, include.conditional, "cpdmv", "cpdmvc")
-is.cpdc = function (xf, include.multivariate=TRUE) .inc (xf, include.multivariate, "cpdc", "cpdmvc")
-is.cpdmvc = function (xf) inherits (xf, "cpdmvc")
+is.dpduv = function (object, include.conditional=TRUE) .inc (object, include.conditional, "dpduv", "dpdc")
+is.dpdc = function (object, include.multivariate=TRUE) .inc (object, include.multivariate, "dpdc", "dpdmvc")
+is.cpduv = function (object, include.conditional=TRUE) .inc (object, include.conditional, "cpduv", "cpdc")
+is.cpdmv = function (object, include.conditional=TRUE) .inc (object, include.conditional, "cpdmv", "cpdmvc")
+is.cpdc = function (object, include.multivariate=TRUE) .inc (object, include.multivariate, "cpdc", "cpdmvc")
+is.cpdmvc = function (object) inherits (object, "cpdmvc")
 
-is.pmfuv = function (xf, include.conditional=TRUE) .inc (xf, include.conditional, "pmfuv", "pmfc")
-is.pmfc = function (xf, include.multivariate=TRUE) .inc (xf, include.multivariate, "pmfc", "pmfmvc")
-is.dcdfuv = function (xf, include.conditional=TRUE) .inc (xf, include.conditional, "dcdfuv", "dcdfc")
-is.dcdfc = function (xf, include.multivariate=TRUE) .inc (xf, include.multivariate, "dcdfc", "dcdfmvc")
-is.dqfuv = function (xf, include.conditional=TRUE) .inc (xf, include.conditional, "dqfuv", "dqfc")
-is.dqfc = function (xf) inherits (xf, "dqfc")
-is.pdfuv = function (xf, include.conditional=TRUE) .inc (xf, include.conditional, "pdfuv", "pdfc")
-is.pdfmv = function (xf, include.conditional=TRUE) .inc (xf, include.conditional, "pdfmv", "pdfmvc")
-is.pdfc = function (xf, include.multivariate=TRUE) .inc (xf, include.multivariate, "pdfc", "pdfmvc")
-is.pdfmvc = function (xf) inherits (xf, "pdfmvc")
-is.ccdfuv = function (xf, include.conditional=TRUE) .inc (xf, include.conditional, "ccdfuv", "ccdfc")
-is.ccdfmv = function (xf, include.conditional=TRUE) .inc (xf, include.conditional, "ccdfmv", "ccdfmvc")
-is.ccdfc = function (xf, include.multivariate=TRUE) .inc (xf, include.multivariate, "ccdfc", "ccdfmvc")
-is.ccdfmvc = function (xf) inherits (xf, "ccdfmvc")
-is.cqfuv = function (xf, include.conditional=TRUE) .inc (xf, include.conditional, "cqfuv", "cqfc")
-is.cqfc = function (xf) inherits (xf, "cqfc")
+is.pduv = function (object, include.conditional=TRUE)
+	(is.dpduv (object, include.conditional) || is.cpduv (object, include.conditional) )
 
-is.phspline = function (xf)
-{	if (is.pdfuv (xf, TRUE) || is.ccdfuv (xf, TRUE) )
-		xf %$% "is.spline"
-	else if (is.cqf (xf) )
+is.pmfuv = function (object, include.conditional=TRUE) .inc (object, include.conditional, "pmfuv", "pmfc")
+is.pmfc = function (object, include.multivariate=TRUE) .inc (object, include.multivariate, "pmfc", "pmfmvc")
+is.dcdfuv = function (object, include.conditional=TRUE) .inc (object, include.conditional, "dcdfuv", "dcdfc")
+is.dcdfc = function (object, include.multivariate=TRUE) .inc (object, include.multivariate, "dcdfc", "dcdfmvc")
+is.dqfuv = function (object, include.conditional=TRUE) .inc (object, include.conditional, "dqfuv", "dqfc")
+is.dqfc = function (object) inherits (object, "dqfc")
+is.pdfuv = function (object, include.conditional=TRUE) .inc (object, include.conditional, "pdfuv", "pdfc")
+is.pdfmv = function (object, include.conditional=TRUE) .inc (object, include.conditional, "pdfmv", "pdfmvc")
+is.pdfc = function (object, include.multivariate=TRUE) .inc (object, include.multivariate, "pdfc", "pdfmvc")
+is.pdfmvc = function (object) inherits (object, "pdfmvc")
+is.ccdfuv = function (object, include.conditional=TRUE) .inc (object, include.conditional, "ccdfuv", "ccdfc")
+is.ccdfmv = function (object, include.conditional=TRUE) .inc (object, include.conditional, "ccdfmv", "ccdfmvc")
+is.ccdfc = function (object, include.multivariate=TRUE) .inc (object, include.multivariate, "ccdfc", "ccdfmvc")
+is.ccdfmvc = function (object) inherits (object, "ccdfmvc")
+is.cqfuv = function (object, include.conditional=TRUE) .inc (object, include.conditional, "cqfuv", "cqfc")
+is.cqfc = function (object) inherits (object, "cqfc")
+
+is.phspline = function (object)
+{	if (is.pdfuv (object, TRUE) || is.ccdfuv (object, TRUE) )
+		object %$% "is.spline"
+	else if (is.cqf (object) )
 		TRUE
 	else
 		FALSE
 }
 
-is.dks = function (xf) inherits (xf, "dks")
-is.cks = function (xf) inherits (xf, "cks")
-is.cat = function (xf) inherits (xf, "cat")
-is.el = function (xf) inherits (xf, "el")
+is.dks = function (object) inherits (object, "dks")
+is.cks = function (object, include.xmix=TRUE) .inc (object, include.xmix, "cks", "xmix")
+is.cat = function (object, include.gmix=TRUE) .inc (object, include.gmix, "cat", "gmix")
+is.el = function (object) inherits (object, "el")
 
-.frange = function (sf, infv, freq)
-{	if (infv)
-	{	if (is.pmf (sf) || is.pdf (sf) )
-			c (0, ph.mode (sf, TRUE, freq=freq) )
-		else
-			c (0, 1)
-	}
+is.gmix = function (object) inherits (object, "gmix")
+is.xmix = function (object) inherits (object, "xmix")
+
+ph.namesf.phmodel = function (sf, ..., all=FALSE)
+{	if (is.cat (sf) )
+		vars = attr (sf, "gname")
 	else
-		sf %$% "xlim"
+		vars = attr (sf, "xname")
+
+	if (is.gmix (sf) || is.xmix (sf) )
+	{	if (all)
+			stop ("all needs to be false, for gmix/xmix models")
+	}
+	else if ( (is.dpdc (sf) || is.cpdc (sf) ) && ! all)
+	{	m = attr (sf, "m")
+		if (is.pduv (sf) )
+			vars = vars [m]
+		else
+		{	ncon = attr (sf, "ncon")
+			vars = vars [(ncon + 1):m]
+		}
+	}
+	vars
 }
 
-min.dpduv = function (sf, infv=FALSE, ...) range (sf, infv, ...) [1]
-max.dpduv = function (sf, infv=FALSE, ...) range (sf, infv, ...) [2]
-min.cpduv = function (sf, infv=FALSE, ...) range (sf, infv, ...) [1]
-max.cpduv = function (sf, infv=FALSE, ...) range (sf, infv, ...) [2]
+.range.phpd = function (sf, infv=FALSE, freq=FALSE, n)
+{	if (infv)
+	{	if (is.cpd (sf) && freq)
+			stop ("freq needs to be false, for continuous models")
+		if (is.pmf (sf) || is.pdf (sf) )
+			c (0, ph.mode (sf, TRUE, freq=freq, n=n) )
+		else
+		{	if (freq)
+			{	if (missing (n) )
+				{	if (is.cat (sf) )
+						n = sf %$% ".gsum"
+					else
+						n = sf %$% ".xsum"
+				}
+				c (0, n)
+			}
+			else
+				c (0, 1)
+		}
+	}
+	else
+	{	if (is.cat (sf) )
+			attr (sf, "glim")
+		else if (is.cks (sf) || is.xmix (sf) )
+		{	xlim = attr (sf, "data")$xlim
+			if (is.cpdc (sf) )
+			{	ncon = attr (sf, "ncon")
+				#currently some xmix models based on cksuv, others based on cksc
+				if (! is.null (ncon) )
+				{	m = attr (sf, "m")
+					xlim = xlim [(ncon + 1):m,, drop = is.cpduv (sf)]
+				}
+			}
+			xlim
+		}
+		else
+		{	#kernels
+			attr (sf, "xlim")
+		}
+	}
+}
 
-range.dpduv = function (sf, infv=FALSE, ..., freq) .frange (sf, infv, freq)
-range.cpduv = function (sf, infv=FALSE, ...) .frange (sf, infv)
+.phminmax = function (sf, infv, which, freq=FALSE, n)
+{	k = .range.phpd (sf, infv, freq=freq, n=n)
+	if (is.pduv (sf) || infv)
+		k [which]
+	else
+		k [,which]
+}
 
-seq.dpduv = function (sf, infv=FALSE, ..., midpoints=TRUE, freq)
+range.dpd = function (sf, infv=FALSE, ..., freq=FALSE, n)
+	.range.phpd (sf, infv, freq, n)
+range.cpd = function (sf, infv=FALSE, ...)
+	.range.phpd (sf, infv)
+
+min.dpd = function (sf, infv=FALSE, ..., freq=FALSE, n)
+	.phminmax (sf, infv, 1, freq, n)
+max.dpd = function (sf, infv=FALSE, ..., freq=FALSE, n)
+	.phminmax (sf, infv, 2, freq, n)
+min.cpd = function (sf, infv=FALSE, ...)
+	.phminmax (sf, infv, 1)
+max.cpd = function (sf, infv=FALSE, ...)
+	.phminmax (sf, infv, 2)
+
+seq.dpduv = function (sf, infv=FALSE, ..., midpoints=TRUE, freq=FALSE, n)
 {	if (infv)
 	{	if (is.pmf (sf) )
-		{	if (missing (freq) )
-				freq = sf %$% "freq"
-			if (freq == TRUE)
+		{	if (freq == TRUE)
 			{	x = seq (sf)
-				sf (x, freq=TRUE)
+				sf (x, freq=TRUE, n=n)
 			}
 			else
 				sf %$% ".probs"
@@ -178,66 +251,55 @@ seq.cpduv = function (sf, infv=FALSE, ..., n=200)
 	}
 }
 
-print.phmodel = function (x, ...)
-	object.summary (x, ...)
+ph.printf.phmodel = function (sf, ...)
+	.object.summary (sf)
+ph.printf.dset = function (vf, ...)
+	print (paste (class (vf)[1], "object") )
 
-.plot.kernel = function (kc, continuous, cdf, ..., main = kc %$% "name")
-{	if (cdf) fs = kc [[2]]
-	else fs = kc [[1]]
-	if (continuous) plot_cpd (fs, ..., main=main)
-	else plot_dpd (fs, ..., main=main)
-}
-
-plot.dkernel = function (x, ..., cdf=FALSE) .plot.kernel (x, FALSE, cdf, ...)
-plot.ckernel = function (x, ..., cdf=FALSE) .plot.kernel (x, TRUE, cdf, ...)
-
-.plot.dksuv = function (sf, data, ..., combine, space, freq)
-{	if (is.dqf (sf) )
-		data = FALSE
-	if (missing (combine) )
-		combine = is.dks (sf)
-	if (missing (space) )
-	{	if (is.pmf (sf) && is.cat (sf) )
-			space = 2
-		else
-			space = 0
+.plot.kernel = function (k, continuous, cdf, ..., main = k %$% "name")
+{	if (cdf) sf = k@F
+	else sf = k@f
+	attr (sf, "variable.name") = "x"
+	if (continuous)
+	{	attr (sf, "xlim") = c (-1, 1)
+		plot_cpd (sf, ..., main=main)
 	}
-	plot_dpd (sf, data, ..., combine=combine, freq=freq, space=space)
+	else
+	{	attr (sf, "xlim") = k@xlim
+		attr (sf, "freq") = FALSE
+		plot_dpd (sf, ..., main=main)
+	}
 }
 
-plot.dksuv = function (x, data=FALSE, ..., freq)
-	.plot.dksuv (x, data, ..., freq=freq)
+ph.plotf.DKernel = function (dk, ..., cdf=FALSE) .plot.kernel (dk, FALSE, cdf, ...)
+ph.plotf.CKernel = function (ck, ..., cdf=FALSE) .plot.kernel (ck, TRUE, cdf, ...)
 
-plot.cksuv = function (x, data=FALSE, ...)
-{	sf = x
+ph.plotf.dksuv = function (sf, data=FALSE, ...) plot_dpd (sf, data, ...)
+ph.plotf.catuv = function (sf, ...) plot_dpd (sf, FALSE, ...)
+ph.plotf.catc = function (sf, ...) plot_dpd (sf, FALSE, ...)
+ph.plotf.gmix = function (sf, ...) plot_dpd (sf, FALSE, ...)
 
-	if (is.cqf (sf) || is.cpdc (sf) )
+ph.plotf.cksuv = function (sf, data=FALSE, ...)
+{	if (is.cqf (sf) || is.cpdc (sf) )
 		data = FALSE
 	plot_cpd (sf, data, ...)
 }
 
-plot.cksmv = function (x, in3d=FALSE, data=FALSE,...)
-{	sf = x
-
-	if (is.cpdmvc (sf) )
+ph.plotf.cksmv = function (sf, in3d=FALSE, data=FALSE,...)
+{	if (is.cpdmvc (sf) )
 		M = sf %$% "M"
 	else
 		M = sf %$% "m"
 	if (M == 2) plot_cpd_bv (sf, in3d, data, ...)
-	else if (M == 3) plot_cpd_tv (sf, ...)
+	else if (M == 3) plot_cpd_tv (sf, in3d, ...)
 	else stop ("can only plot mv PDFs/CDFs with 2/3 RVs")
 }
 
-plot.cksc = function (x, ...) plot.cksuv (x, FALSE, ...)
-plot.cksmvc = function (x, in3d=FALSE, data=FALSE, ...) plot.cksmv (x, in3d, data, ...)
+ph.plotf.cksc = function (sf, ...) ph.plotf.cksuv (sf, FALSE, ...)
+ph.plotf.cksmvc = function (sf, in3d=FALSE, data=FALSE, ...) ph.plotf.cksmv (sf, in3d, data, ...)
 
-plot.catuv = function (x, ..., combine, freq, space)
-	.plot.dksuv (x, FALSE, ..., combine=combine, freq=freq, space=space)
-
-plot.eluv = function (x, data=FALSE, ...)
-{	sf = x
-
-	plot_cpd (sf, FALSE, ...)
+ph.plotf.eluv = function (sf, data=FALSE, ...)
+{	plot_cpd (sf, FALSE, ...)
 	if (data)
 	{	x = sf %$% "spline.function" %$% "cx"
 		y = sf %$% "spline.function" %$% "cy"
@@ -248,30 +310,44 @@ plot.eluv = function (x, data=FALSE, ...)
 	}
 }
 
-lines.cpduv = function (x, ...)
-{	N = 200
-	sf = x
+ph.plotf.xmix = function (sf, ...) ph.plotf.cksuv (sf, FALSE, ...)
 
-	if (is.cqf (sf) )
-	{	x = seq (0, 1, length.out=N)
+ph.linesf.cpduv = function (sf, ..., xlim, n=200)
+{	if (is.cqf (sf) )
+	{	x = seq (0, 1, length.out=n)
 		y = sf (x)
 	}
 	else
-	{	x = seq (sf, n=N)
+	{	if (missing (xlim) )
+			xlim = range (sf)
+		x = seq (xlim [1], xlim [2], length.out=n)
 		y = sf (x)
 	}
 	lines (x, y, ...)
 }
 
-mf.dfh = function (x, ..., freq) 0
-mf.dFh = function (q) 0
+mf.dfh = function (x, ..., freq=FALSE, n) 0
+mf.dFh = function (x, ..., freq=FALSE, n) 0
 mf.dFht = function (p) 0
-mf.gfh = function (g, ..., freq) 0
-mf.gFh = function (q) 0
-mf.gFht = function (p, ..., name=FALSE) 0
+mf.gfh = function (g, ..., freq=FALSE, n) 0
+mf.gFh = function (g, ..., freq=FALSE, n) 0
+mf.gFht = function (p, ..., level.names=FALSE) 0
 mf.cfh = function (x) 0
-mf.cFh = function (q) 0
+mf.cFh = function (x) 0
 mf.cFht = function (p) 0
 mf.cfh.mv = function (x) 0
-mf.cFh.mv = function (q) 0
+mf.cFh.mv = function (x) 0
 mf.chFht = function (p) 0
+
+.arg.error = function (...)
+{	expr = format ( (sys.call (-1)) )
+	n = length (list (...) )
+	if (n > 0)
+	{	cat ("call with unsupported args:\n")
+		print (expr)
+		cat ("check for incorrect argument names\n")
+		cat ("check for unnamed non-leading arguments\n")
+		cat ("e.g. in pdfuv.cks (x, bw), bw\n")
+		warning ("unsupported args, check arg names")
+	}
+}

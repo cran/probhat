@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2020
+#Copyright (C), Abby Spurdle, 2018 to 2021
 
 #This program is distributed without any warranty.
 
@@ -13,19 +13,17 @@
 
 #unpacked by .gmix, .xmix
 .mix = function (continuous, g, x, w, conditions, throw.warning, ...)
-{	objs = .cat.data (g)
-	variable.names = nlevels = levels = n = m = g = NULL
-	UNPACK (objs)
+{	objs = .cat.data (g, TRUE)
+	gnames = nlevels = levels = n = m = g = NULL
+	.UNPACK (objs)
 
-	gnames = variable.names
 	mg = m
-
-	xnames = .varnames (x)
+	xnames = .varnames (x, "x", TRUE)
 	x = .val.x.uv.or.mv (x)
 	colnames (x) = xnames
 	mx = ncol (x)
 
-	is.weighted = (! is.na (w [1]) )
+	is.weighted = (! (missing (w) || is.na (w [1]) ) )
 	w = .val.w (is.weighted, n, w, FALSE)
 
 	if (mg == 0 || mx == 0)
@@ -38,10 +36,18 @@
 	ncon = length (conditions)
 	bnames = c (gnames, xnames)
 	connames = names (conditions)
+
 	if (is.null (connames) )
 		stop ("unnamed conditions in mixed conditional model")
 	if (! all (connames %in% bnames) )
-		stop ("condition names not in variable names")
+	{	cstr = paste (connames, collapse=" ")
+		bstr = paste (bnames, collapse=" ")
+		err = paste0 (
+			"condition names not in variable names:\n    ",
+				"cons: ", cstr, "\n    ",
+				"vars: ", bstr)
+		stop (err)
+	}
 
 	gconditions = conditions [connames %in% gnames]
 	xconditions = unlist (conditions [connames %in% xnames])
@@ -63,9 +69,11 @@
 
 	gJ = match (names (gconditions), gnames)
 	xJ = match (names (xconditions), xnames)
+
+	n0 = n
 	if (ngcon > 0)
 	{	gJ = c (gJ, (1:mg)[-gJ])
-		variable.names = variable.names [gJ]
+		gnames = gnames [gJ]
 		nlevels = nlevels [gJ]
 		levels = levels [gJ]
 		g = g [,gJ, drop=FALSE]
@@ -81,6 +89,7 @@
 	}
 	if (nxcon > 0)
 	{	xJ = c (xJ, (1:mx)[-xJ])
+		xnames = xnames [xJ]
 		x = x [,xJ, drop=FALSE]
 	}
 
@@ -91,31 +100,37 @@
 	}
 	else
 	{	if (continuous)
-			LIST (x, w, gconditions, xconditions)
+			.LIST (ngcon, nxcon, gnames, xnames, gconditions, xconditions, n0, mg, mx, x, w)
 		else
 		{	variable.name = gnames [mg]
 			nlevels = nlevels [mg]
 			levels = levels [[mg]]
 			g = g [,mg]
-			LIST (is.weighted, variable.name, nlevels, levels, n, g, x, w, gconditions, xconditions)
+			.LIST (is.weighted, gnames, xnames, nlevels, levels, n0, n, mg, mx, g, x, w, gconditions, xconditions)
 		}
 	}
 }
 
-.gmix = function (f, cv, g, x, w, conditions, throw.warning, ..., bw, smoothness=1, freq=FALSE)
+.gmix = function (f, cv, g, x, w, conditions, throw.warning, ..., bw, smoothness=1)
 {	mixobj = .mix (FALSE, g, x, w, conditions, throw.warning, ...)
 	if (is.null (mixobj) )
 		NULL
 	else
-	{	is.weighted = variable.name = nlevels = levels = n = g = x = w = gconditions = xconditions = NULL
-		UNPACK (mixobj)
+	{	is.weighted = gnames = xnames = nlevels = levels = n0 = n = mg = mx = g = x = w = gconditions = xconditions = NULL
+		.UNPACK (mixobj)
+
+		if (is.weighted)
+			h = w
+		else
+			h = rep (1, n)
+		.gsum = sum (h)
 	
-		.probs = .iterate.uv (.pmfuv.cat.eval.scalar, is.weighted, n, g, w / sum (w), u=1:nlevels)
+		.probs = .iterate.uv (.pmfuv.cat.eval.scalar, n, g, h / sum (h), u=1:nlevels)
 		.PROBS = cumsum (.probs)
 		.PROBS [nlevels] = 1
-		gfh = EXTEND (.pmfuv.cat.eval, .CV.pmfuv.cat,
+		gfh = .EXTEND (.pmfuv.cat.eval, .CV.pmfuv.cat,
 			.probs, .PROBS,
-			variable.name, is.weighted, freq=FALSE, nlevels, xlim = c (1, nlevels), levels, n, g, w)
+			freq=FALSE, nlevels, glim = c (1, nlevels), levels, n, g, h)
 
 		bw = auto.cbw (x, bw=bw, smoothness=smoothness)
 		cfh = pdfmv.cks (x, ..., bw=bw, w=w)
@@ -147,47 +162,62 @@
 	
 			.PROBS = cumsum (.probs)
 			.PROBS [nlevels] = 1
-			EXTEND (f, cv,
-				.probs, .PROBS,
-				is.weighted, variable.name, gconditions, xconditions, freq, nlevels, xlim = c (1, nlevels), levels, n, g, w)
+			.EXTEND (f, cv,
+				.probs, .PROBS, .gsum,
+				gnames, xnames,
+				gconditions, xconditions, nlevels, glim = c (1, nlevels), levels, n, n0, mg, mx, g, h)
 		}
 	}
 }
 
-.xmix = function (constructor, constructor.c, g, x, w, conditions, throw.warning, ...)
+.xmix = function (constructor, constructor.c, cv, g, x, w, conditions, throw.warning, ...)
 {	mixobj = .mix (TRUE, g, x, w, conditions, throw.warning)
 	if (is.null (mixobj) )
 		NULL
 	else
-	{	x = w = gconditions = xconditions = NULL
-		UNPACK (mixobj)
+	{	ngcon = nxcon = NULL
+		gnames = xnames = gconditions = xconditions = n0 = mg = mx = x = w = NULL
+		.UNPACK (mixobj)
 
 		if (length (xconditions) == 0)
-		{	sf = constructor (x, ..., conditions=xconditions, w=w)
-			sf = EXTEND (sf, "cpdc")
+		{	sf = constructor (x, ..., w=w)
 		}
 		else
-			sf = constructor (x, ..., conditions=xconditions, w=w)
+			sf = constructor.c (x, ..., conditions=xconditions, w=w)
+		class (sf) = cv
+		sf %$% ".ngcon" = ngcon
+		sf %$% ".nxcon" = nxcon
+		sf %$% "gnames" = gnames
+		sf %$% "xnames" = xnames
 		sf %$% "gconditions" = gconditions
 		sf %$% "xconditions" = xconditions
+		sf %$% "n0" = n0
+		sf %$% "mg" = mg
+		sf %$% "mx" = mx
 		sf
 	}
 }
 
-pmfc.gmixp = function (g, x, ..., conditions, warning=TRUE, w=NA, freq=FALSE)
-	.gmix (.pmfuv.cat.eval, .CV.pmfc.cat, g, x, w, conditions, warning, ..., freq=freq)
+pmfc.gmix = function (g, x, ..., conditions, warning=TRUE, w)
+{	.arg.error (...)
+	.gmix (.pmfuv.cat.eval, .CV.pmfc.gmix, g, x, w, conditions, warning, ...)
+}
 
-cdfc.gmixp = function (g, x, ..., conditions, warning=TRUE, w=NA)
-	.gmix (.cdfuv.cat.eval, .CV.cdfc.cat, g, x, w, conditions, warning, ...)
+cdfc.gmix = function (g, x, ..., conditions, warning=TRUE, w)
+{	.arg.error (...)
+	.gmix (.cdfuv.cat.eval, .CV.cdfc.gmix, g, x, w, conditions, warning, ...)
+}
 
-qfc.gmixp = function (g, x, ..., conditions, warning=TRUE, w=NA)
-	.gmix (.qfuv.cat.eval, .CV.qfc.cat, g, x, w, conditions, warning, ...)
+qfc.gmix = function (g, x, ..., conditions, warning=TRUE, w)
+{	.arg.error (...)
+	.gmix (.qfuv.cat.eval, .CV.qfc.gmix, g, x, w, conditions, warning, ...)
+}
 
-pdfc.xmixp = function (g, x, ..., conditions, warning=TRUE, w=NA)
-	.xmix (pdfuv.cks, pdfc.cks, g, x, w, conditions, warning, ...)
+pdfc.xmix = function (g, x, ..., conditions, warning=TRUE, w)
+	.xmix (pdfuv.cks, pdfc.cks, .CV.pdfc.xmix, g, x, w, conditions, warning, ...)
 
-cdfc.xmixp = function (g, x, ..., conditions, warning=TRUE, w=NA)
-	.xmix (cdfuv.cks, cdfc.cks, g, x, w, conditions, warning, ...)
+cdfc.xmix = function (g, x, ..., conditions, warning=TRUE, w)
+	.xmix (cdfuv.cks, cdfc.cks, .CV.cdfc.xmix, g, x, w, conditions, warning, ...)
 
-qfc.xmixp = function (g, x, ..., conditions, warning=TRUE, w=NA)
-	.xmix (qfuv.cks, qfc.cks, g, x, w, conditions, warning, ...)
+qfc.xmix = function (g, x, ..., conditions, warning=TRUE, w)
+	.xmix (qfuv.cks, qfc.cks, .CV.qfc.xmix, g, x, w, conditions, warning, ...)

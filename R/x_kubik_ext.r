@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2020
+#Copyright (C), Abby Spurdle, 2018 to 2021
 
 #This program is distributed without any warranty.
 
@@ -20,47 +20,57 @@
 	cbind (which (k1 == 1), which (k2 == -1) + 1)
 }
 
-.incr.chs = function (cx, cy, cb, ...)
-{	constraints = chs.constraints (increasing=TRUE)
-	chs (cx, cy, cb, constraints=constraints, ...)
+.incr.chs = function (cx, cy, incr=TRUE, ...)
+{	if (incr)
+		constraints = chs.constraints (increasing=TRUE)
+	else
+		constraints = chs.constraints (decreasing=TRUE)
+	chs (cx, cy, constraints=constraints, ...)
 }
 
-.spline = function (f, with.cdf, nc)
+.spline = function (f, with.cdf, nc, lower=TRUE)
 {	cx = seq (f, n=nc)
 	cy = f (cx)
 	if (with.cdf)
-	{	cy [c (1, nc)] = c (0, 1)
-		.incr.chs (cx, cy, outside = c (0, 1) )
+	{	if (lower)
+			cy [c (1, nc)] = c (0, 1)
+		else
+			cy [c (1, nc)] = c (1, 0)
+		.incr.chs (cx, cy, lower, outside = c (0, 1) )
 	}
 	else
-	{	cy [c (1, nc)] = c (0, 0)
 		chs (cx, cy, outside = c (0, 0) )
-	}	
 }
 
-.modified.spline.transposed = function (cx, cy)
+.modified.spline.transposed = function (cx, cy, lower=TRUE)
 {	nc = length (cx)
-	cy [1] = 0
-	cy [nc] = 1
+	if (lower)
+	{	cy [1] = 0
+		cy [nc] = 1
+	}
+	else
+	{	cy [1] = 1
+		cy [nc] = 0
+	}
 
 	ints = .intset (cy)
 	nsplines = nrow (ints)
 	if (nsplines == 1)
 	{	I = ints [1, 1]:ints [1, 2]
-		.incr.chs (cy [I], cx [I])
+		.incr.chs (cy [I], cx [I], lower)
 	}
 	else
 	{	knots = cy [ints [,1][-1]]
 		splines = vector ("list", nsplines)
 		for (i in 1:nsplines)
 		{	I = ints [i, 1]:ints [i, 2]
-			splines [[i]] = .incr.chs (cy [I], cx [I])
+			splines [[i]] = .incr.chs (cy [I], cx [I], lower)
 		}
 		f = function (x)
-		{	. = THAT ()
+		{	. = .THAT ()
 			.iterate.uv (.nested.chs.eval, .$knots, .$splines, u=x)
 		}
-		EXTEND (f, "nested.chs", nsplines, knots, splines)
+		.EXTEND (f, "nested.chs", nsplines, knots, splines)
 	}
 }
 

@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2020
+#Copyright (C), Abby Spurdle, 2018 to 2021
 
 #This program is distributed without any warranty.
 
@@ -67,28 +67,28 @@ raw.moment = function (sf, nth, about=0, ..., n.intervals=200)
 	sum (x * y)
 }
 
-ntile.names = function (symbol="q", n, ..., emph = n / 2)
+ntile.names = function (n, symbol="q", ..., emph = n / 2)
 {	str = c ("min", paste0 (symbol, 1:(n - 1) ), "max")
 	I = unique (c (floor (emph), ceiling (emph) ) )
 	str [I + 1] = paste0 ("(", symbol, I, ")")
 	str
 }
 
-quartiles = function (xf, col=FALSE, ..., rank=TRUE, names = ntile.names ("Q", 4, emph=emph), emph=2)
-	ntiles (xf, 4, col, ..., rank=rank, names=names)
-deciles = function (xf, col=FALSE, ..., rank=TRUE, names = ntile.names ("D", 10, emph=emph), emph=5)
-	ntiles (xf, 10, col, ..., rank=rank, names=names)
+quartiles = function (xf, col=FALSE, ..., prob=FALSE, names = ntile.names (4, "Q", emph=emph), emph=2)
+	ntiles (4, xf, col, ..., prob=prob, names=names)
+deciles = function (xf, col=FALSE, ..., prob=FALSE, names = ntile.names (10, "D", emph=emph), emph=5)
+	ntiles (10, xf, col, ..., prob=prob, names=names)
 
-ntiles = function (xf, n, col=FALSE, ..., rank=TRUE, names)
+ntiles = function (n, xf, col=FALSE, ..., prob=FALSE, names)
 {	sf = .xqf (xf, ...)
 
 	p = seq (0, 1, length.out = n + 1)
-	if (rank)
-	{	if (missing (names) )
-			names = ntile.names (,n)
-	}
+	if (prob)
+		names = round (p, 4)
 	else
-		names = p
+	{	if (missing (names) )
+			names = ntile.names (n)
+	}
 	q = sf (p)
 	names (q) = names
 	if (col)
@@ -113,29 +113,29 @@ iqr = function (xf, P=0.5, ...)
 	sf (b) - sf (a)
 }
 
-ph.mode = function (sf, infv=FALSE, ..., name=FALSE, freq)
+ph.mode = function (sf, infv=FALSE, ..., level.names=FALSE, freq=FALSE, n)
 {	if (is.pmfuv (sf) )
 	{	.probs = sf %$% ".probs"
 		I = which.max (.probs)
 		if (infv)
-		{	if (missing (freq) )
-				freq = sf %$% "freq"
-			if (freq)
+		{	if (freq)
 			{	x = seq (sf)[I]
-				sf (x, freq=freq)
+				sf (x, freq=TRUE, n=n)
 			}
 			else
 				.probs [I]
 		}
 		else
-		{	if (is.cat (sf) && name)
+		{	if (is.cat (sf) && level.names)
 				(sf %$% "levels")[I]
 			else
 				seq (sf)[I]
 		}
 	}
 	else if (is.phspline (sf) )
-	{	x = ph.modes (sf)
+	{	if (freq)
+			stop ("freq needs to be false, for continuous models")
+		x = ph.modes (sf)
 		if (length (x) == 0)
 			stop ("no (non-boundary) mode")
 		else
@@ -148,14 +148,7 @@ ph.mode = function (sf, infv=FALSE, ..., name=FALSE, freq)
 		}
 	}
 	else
-		stop ("needs uv PMF or spline-based uv PDF")
-}
-
-gmode = function (sf)
-{	if (is.pmfuv (sf) && is.cat (sf) )
-		ph.mode (sf, name=TRUE)
-	else
-		stop ("gmode needs univariate categorical PMF")
+		stop ("needs univariate PMF or spline-based PDF")
 }
 
 ph.modes = function (sf, infv=FALSE)

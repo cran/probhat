@@ -77,17 +77,17 @@ set.seed (1)
 \newcommand{\cdfuvel}{CDF\textsubscript{(UV)}$\sim$EL}
 \newcommand{\qfuvel}{QF\textsubscript{(UV)}$\sim$EL}
 
-\newcommand{\pmfcgmix}{PMF\textsubscript{(C)}$\sim$gMIXp}
-\newcommand{\cdfcgmix}{CDF\textsubscript{(C)}$\sim$gMIXp}
-\newcommand{\qfcgmix}{QF\textsubscript{(C)}$\sim$gMIXp}
+\newcommand{\pmfcgmix}{PMF\textsubscript{(C)}$\sim$gMIX}
+\newcommand{\cdfcgmix}{CDF\textsubscript{(C)}$\sim$gMIX}
+\newcommand{\qfcgmix}{QF\textsubscript{(C)}$\sim$gMIX}
 
-\newcommand{\pdfcxmix}{PDF\textsubscript{(C)}$\sim$xMIXp}
-\newcommand{\cdfcxmix}{CDF\textsubscript{(C)}$\sim$xMIXp}
-\newcommand{\qfcxmix}{QF\textsubscript{(C)}$\sim$xMIXp}
+\newcommand{\pdfcxmix}{PDF\textsubscript{(C)}$\sim$xMIX}
+\newcommand{\cdfcxmix}{CDF\textsubscript{(C)}$\sim$xMIX}
+\newcommand{\qfcxmix}{QF\textsubscript{(C)}$\sim$xMIX}
 
-\stitle {probhat}{0.3.1}{Multivariate Generalized\\Kernel Smoothing\\and\\Related Statistical Methods}
+\stitle {probhat}{0.4.0}{Multivariate Generalized\\Kernel Smoothing\\and\\Related Statistical Methods}
 
-\sabstract {Mass functions, density functions, distribution functions and quantile functions via continuous kernel smoothing, and to a lesser extent, discrete kernel smoothing. Also, supports categorical distributions and smooth empirical-like distributions. There are univariate, multivariate and conditional distributions, including multivariate-conditional distributions and conditional distributions with mixed input types, along with functions for plotting univariate, bivariate and trivariate distributions. Conditional categorical distributions with mixed input types can be used for statistical classification purposes. And there are extensions for computing multivariate probabilities, multivariate random numbers, moment-based statistics, robust-based statistics and mode estimates.}
+\sabstract {Probability mass functions (PMFs), probability density functions (PDFs), cumulative distribution functions (CDFs) and quantile functions, mainly via (optionally bounded/truncated) kernel smoothing. In the continuous case, there's support for univariate, multivariate and conditional distributions, including distributions that are both multivariate and conditional. These generalize methods from the book "Kernel Smoothing", Wand and Jones (1995). Also, supports categorical distributions, mixed conditional distributions (with mixed input types) and smooth empirical-like distributions, some of which, can be used for statistical classification. There are extensions for computing distance matrices (between distributions), multivariate probabilities, multivariate random numbers, moment-based statistics and mode estimates.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section* {Introduction}
@@ -97,6 +97,7 @@ This is an R package for multivariate generalized kernel smoothing, as per the t
 Kernel smoothing is generalized, by estimating:
 \begin{itemize}
 \itemsep -0.15cm
+	\item Bounded random variables.
 	\item Both discrete and continuous probability distributions.
 	\item Probability mass functions (PMFs), probability density functions (PDFs), cumulative distribution functions (CDFs) and quantile functions (QFs).
 	\item In the continuous case, multivariate and conditional distributions, including multivariate-conditional distributions.
@@ -126,8 +127,10 @@ Also, there are extensions for computing probabilities, random number generation
 Notes:
 \begin{itemize}
 \itemsep -0.15cm
-	\item This package is based on self-referencing function objects.\\
+	\item This package is based on S3-based self-referencing function objects.\\
 		(Which are equivalent to the \{d, p, q, r\} approach used in R's stats package).
+	\item IT'S POSSIBLE THESE MAY CHANGE TO S4-BASED FUNCTION OBJECTS, IN THE NEAR FUTURE.\\
+		(In principle, you should not access attributes/slots, directly).
 	\item Bivariate/trivariate plotting functions use the barsurf package, which uses the base graphics system.
 	\item Variable names are taken from column names or list names.
 	\item This package gives precedence to vectors and matrices, over lists and data frames.\\
@@ -139,9 +142,7 @@ Currently, there are some limitations:
 \begin{itemize}
 \itemsep -0.15cm
 	\item Bandwidth selection methods are simplistic.
-	\item Continuous models are unbounded/untruncated only.
 	\item Parameter estimates and distribution sets, need substantial improvement.
-	\item Expanding on the previous set of points, the input format for data, isn't as simple as it could be.
 \end{itemize}
 
 These are high priorities for future updates, which may also support categorical smoothing.
@@ -149,26 +150,25 @@ These are high priorities for future updates, which may also support categorical
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section* {Preliminary Code}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-I'm going to load (and attach) the vectools, probhat, fclust and scatterplot3d packages:
+I'm going to load (and attach) the probhat, fclust and scatterplot3d packages:
 <<>>=
 library (probhat)       #required
-library (vectools)      #optional, used in appendix
 library (fclust)        #optional, used in appendix
 library (scatterplot3d) #optional
 @
 
-Note that the probhat package imports the intoo, barsurf and kubik packages.
+Note that the probhat package imports the barsurf and kubik packages.
 
 I will set global options for viewing PDF documents electronically, and default colors to green:
 
 <<>>=
-set.ph.options (rendering.style="e", theme="green")
+set.ph.options (rendering.style="pdf", theme="green")
 @
 
 And I will construct some data objects:
 
 <<>>=
-ph.data.prep ()
+prep.ph.data ()
 @
 
 This function emulates a script.\\
@@ -183,9 +183,9 @@ Likewise, we can construct \cdfuvdks\ and \qfuvdks\ objects, using the \tmu{cdfu
 Here are examples, using traffic accident data, derived from the ``Traffic'' dataset in the MASS package:
 
 <<>>=
-dfh <- pmfuv.dks (traffic.bins, traffic.freq, lower=0)
-dFh <- cdfuv.dks (traffic.bins, traffic.freq, lower=0)
-dFht <- qfuv.dks (traffic.bins, traffic.freq, lower=0)
+dfh <- pmfuv.dks (traffic.bins, traffic.freq)
+dFh <- cdfuv.dks (traffic.bins, traffic.freq)
+dFht <- qfuv.dks (traffic.bins, traffic.freq)
 @
 
 \begin {center}
@@ -226,7 +226,8 @@ Also note that this dataset is not an ideal example.\\
 We can construct a \pdfuvcks\ object, using the \tmu{pdfuv.cks} constructor.\\
 Likewise, we can construct \cdfuvcks\ and \qfuvcks\ objects, using the \tmu{cdfuv.cks} and \tmu{qfuv.cks} constructors.
 
-Here are examples, using height data, derived from the ``trees'' data in the datasets package:
+Here are examples, using height data, derived from the ``trees'' data in the datasets package:\\
+(This in metric).
 
 <<>>=
 cfh <- pdfuv.cks (height)
@@ -263,8 +264,15 @@ We can construct  \pdfmvcks\ and \cdfmvcks\ objects, using the \tmu{pdfmv.cks} a
 Here are examples, using earthquake data, derived from the ``quakes'' data, in the datasets package:
 
 <<>>=
-cfh2 <- pdfmv.cks (quakes [,1:2], smoothness = c (0.35, 1) )
-cfh3 <- pdfmv.cks (quakes [,1:3], smoothness = c (0.35, 1, 1) )
+#note, depth is third variable
+#(will fit a semi-bounded model)
+head (quakes2, 2)
+@
+
+<<>>=
+cfh2 <- pdfmv.cks (quakes2 [,1:2], smoothness = c (0.35, 1) )
+cfh3 <- pdfmv.cks (quakes2 [,1:3], smoothness = c (0.35, 1, 1),
+    a = c (-Inf, -Inf, 0) )
 @
 
 \begin {center}
@@ -308,9 +316,10 @@ conditions <- c (long=180, lat=-20)
 @
 
 <<>>=
-depth.fhc <- pdfc.cks (quakes [,-4], smoothness = c (0.35, 1, 1),
-    conditions=conditions, preserve.range=TRUE)
-mag.fhc <- pdfc.cks (quakes [,-3], smoothness = c (0.35, 1, 1),
+depth.fhc <- pdfc.cks (quakes2 [,-4], smoothness = c (0.35, 1, 1),
+    conditions=conditions, preserve.range=TRUE,
+    a = c (-Inf, -Inf, 0) )
+mag.fhc <- pdfc.cks (quakes2 [,-3], smoothness = c (0.35, 1, 1),
     conditions=conditions, preserve.range=TRUE)
 @
 
@@ -333,10 +342,12 @@ We can construct \pdfmvccks\ and \cdfmvccks\ objects, using the \tmu{pdfmvc.cks}
 Here are examples, using the quakes data, from the previous sections:
 
 <<>>=
-depth.mag.fhc <- pdfmvc.cks (quakes, smoothness = c (0.35, 1, 1, 1),
-    conditions = c (long=180, lat=-20), preserve.range=TRUE)
-lat.long.fhc <- pdfmvc.cks (quakes [,-4], smoothness = c (0.35, 1, 1),
-    conditions = c (depth=168), preserve.range=TRUE)
+depth.mag.fhc <- pdfmvc.cks (quakes2, smoothness = c (0.35, 1, 1, 1),
+    conditions = c (long=180, lat=-20), preserve.range=TRUE,
+    a = c (-Inf, -Inf, 0, -Inf) )
+lat.long.fhc <- pdfmvc.cks (quakes2 [,-4], smoothness = c (0.35, 1, 1),
+    conditions = c (depth=168), preserve.range=TRUE,
+    a = c (-Inf, -Inf, 0) )
 @
 
 \begin {center}
@@ -440,13 +451,13 @@ Currently, \phxmix\ models (and \phgmix\ models, if there are both categorical a
 
 \begin {center}
 <<fig=TRUE, width=4.75, height=3>>=
-fh1a.gmix <- pmfc.gmixp (species, sepal.length,
+fh1a.gmix <- pmfc.gmix (species, sepal.length,
     conditions = c (sepal.length=5.5) )
 plot (fh1a.gmix,
     main="Conditional Distribution of Iris Species\n(sepal.length=5.5)")
 @
 <<fig=TRUE, width=4.75, height=3>>=
-fh1b.gmix <- pmfc.gmixp (species, sepal.length,
+fh1b.gmix <- pmfc.gmix (species, sepal.length,
     conditions = c (sepal.length=6.5) )
 plot (fh1b.gmix,
     main="Conditional Distribution of Iris Species\n(sepal.length=6.5)")
@@ -458,7 +469,7 @@ We can use multiple categorical or continuous variables:\\
 
 \begin {center}
 <<fig=TRUE, width=4.75, height=3>>=
-fh2.gmix <- pmfc.gmixp (species, cbind (sepal.length, sepal.width),
+fh2.gmix <- pmfc.gmix (species, cbind (sepal.length, sepal.width),
     conditions = c (sepal.length=6, sepal.width=3) )
 plot (fh2.gmix,
     main = paste (
@@ -476,11 +487,13 @@ The models above can be used for statistical classification purposes:\\
 
 <<>>=
 ph.mode (fh2.gmix)
-gmode (fh2.gmix)
+ph.mode (fh2.gmix, level.names=TRUE)
 @
 
+The distribution set objects, should be wrapped inside a call to \tmu{as.list}, with the exception of using functions specifically designed for them.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Distribution Sets}
+\section* {Distribution Sets\\(And Distance Matrices)}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Here, a distribution set is a set of one or more probability distributions.
 
@@ -493,7 +506,7 @@ Currently, there are two types:
 Lets construct \pdfuvcks\ models of sepal length, grouped by species:
 
 <<>>=
-fh.gset <- pdfuv.gset.cks (sepal.length, group.by=species)
+fh.gset <- pdfuv.gset.cks (species, sepal.length)
 @
 
 \begin {center}
@@ -505,7 +518,7 @@ plot (fh.gset, main="Density Estimates of Sepal Length\n(grouped by species)")
 Lets construct marginal \qfuvel\ objects:
 
 <<>>=
-Fht.mset = qfuv.mset.el (trees)
+Fht.mset = qfuv.mset.el (trees2)
 @
 
 \begin {center}
@@ -514,31 +527,43 @@ plot (Fht.mset, nr=2, nc=2)
 @
 \end {center}
 
+Also, we can compute a distance (or dissimilarity) matrix based on the gset object:
+<<>>=
+pdist (fh.gset)
+@
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section* {Multivariate Probabilities}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Here, multivariate probability refers to the probability of observing multiple random variables between pairs of lower and upper limits. In theory, such probabilities could be computed from the multivariate PMF or PDF, however (here, at least), it's more efficient to compute them from the multivariate CDF.
+Here, multivariate probability refers to the probability of observing multiple random variables between pairs of lower and upper limits.
 
-Using the trees data, we can compute the probability that height, girth and volume are all between arbitrary pairs of limits.
+Currently, there are two sets of functions for this purpose.
+
+The \tmu{probmv} function can be applied to almost any continuous CDF, but it's deprecated.\\ 
+The \tmu{pwith} functions use a modified kernel smoothing algorithm, which is more efficient.
+
+Using the trees data, we can compute the probability that height, girth and volume are all between certains pairs of limits.
 
 We can use the \tmu{probmv} function, which has three arguments, the multivariate CDF, a vector of lower limits and a vector of upper limits:
 <<>>=
 #multivariate cdf
-cFh3 <- cdfmv.cks (trees)
+#note pwith function can use pdf or cdf, but only nonconditional
+cFh3 <- cdfmv.cks (trees2)
 @
 
 <<>>=
-q <- matrix (c (
+xlim <- matrix (c (
     22, 24,    #height in 22 to 24
     28, 38,    #girth  in 28 to 38
     0.55, 1.05 #volume in 0.55 to 1.05
-    ),, 2, byrow=TRUE, dimnames = list (colnames (trees), c ("a", "b") ) )
-q
+    ),, 2, byrow=TRUE, dimnames = list (colnames (trees2), c ("a", "b") ) )
+xlim
 @
 
 <<>>=
 #multivariate probability
-probmv (cFh3, q [,1], q [,2])
+probmv (cFh3, xlim [,1], xlim [,2])
+pwith (cFh3, xlim=xlim)
 @
 
 Note that it's possible to compute multiple regions at once by making a and b matrices with each row representing one region. Also note that currently, variables names are ignored, so they must be in the same order as the variables used to construct the CDF.
@@ -558,7 +583,7 @@ This is done for each evaluation point.
 The convenience function, \tmu{rng}, takes two arguments, the univariate or chained quantile function, and the number of random numbers to generate, then evaluates the quantile function, using a vector or matrix of uniform random numbers.
 
 <<>>=
-chFht <- chqf.cks (trees)
+chFht <- chqf.cks (trees2)
 synthetic.data <- rng (chFht, 31)
 @
 
@@ -576,7 +601,7 @@ plot.trees.data <- function (x, main)
 \begin {center}
 <<fig=TRUE, width=4.75, height=3>>=
 #original data
-plot.trees.data (trees, "original data")
+plot.trees.data (trees2, "original data")
 @
 
 <<fig=TRUE, width=4.75, height=3>>=
@@ -640,14 +665,8 @@ deciles (cFht)
 @
 
 <<>>=
-ntiles (cFht, 8)
-ntiles (cFht, 8, rank=FALSE)
-@
-
-<<>>=
-quartiles (cFht)
-quartiles (eFht)
-quartiles (height)
+ntiles (8, cFht)
+ntiles (8, cFht, prob=TRUE)
 @
 
 An \qfuvel\ object is automatically created, if a numeric vector is used, hence the last two results should be identical (for unique input values) or almost identical (for non-unique input values).
@@ -752,11 +771,7 @@ My main sources are:
 
 Also, this package uses the following R packages, or has been influenced by them:
 
-\ind\tmu {intoo: Minimal Language-Like Extensions}
-
-\indf Spurdle, A.
-
-\ind \tmu {barsurf: Heatmap-Related Plots and Smooth Multiband Color Interpolation}
+\ind \tmu {barsurf: Contour Plots, 3D Plots, Vector Fields and Heatmaps}
 
 \indf Spurdle, A.
 
@@ -791,6 +806,10 @@ Also, this package uses the following R packages, or has been influenced by them
 \ind \tmu {MASS: Support Functions and Datasets for Venables and Ripley's MASS}
 
 \indf Ripley, B.
+
+Further references:
+
+\ind Wand, M.P. \& Jones, M.C. (1995). Kernel Smoothing.
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -869,7 +888,7 @@ Distribution sets:
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Appendix B:\\Notation and Terminology Notes}
+\section* {Appendix B:\\Notation, Terminology and Related Notes}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 When used as a prefix, the letters ``d'' and ``c'' mean discrete and continuous, respectively.\\
@@ -884,132 +903,40 @@ Firstly, CDFs may have level (non-increasing) sections which are non-invertible,
 When used as a suffix, the letters ``uv'', ``mv'', ``c'' and ``mvc'', mean univariate, multivariate, conditional and multivariate-conditional.
 
 In publicly visible constructors (e.g. \tmu{pmfuv.dks}):\\
-Univariate and multivariate distributions, refer to non-conditional univariate and multivariate distributions only, and conditional distributions refer to  univariate conditional distributions only.\\
+Univariate and multivariate distributions, refer to non-conditional univariate and multivariate distributions only, and conditional distributions refer to univariate conditional distributions only.\\
 This also applies to the corresponding class names, and to most of the section headings in this vignette.
 
 In other contexts, univariate and multivariate distributions, can be conditional or non-conditional, and conditional distributions can be univariate or multivariate, unless stated otherwise.
 
-Currently, conditional distributions need at least one condition.\\(i.e. A model with no conditions is not regarded as conditional).
+Currently, conditional distributions need at least one condition.\\
+(i.e. A model with no conditions is not regarded as conditional).
 
-In this package, a ``bounded'' distribution is a fitted distribution with constraints on the range of the random variable, where the smoothing is truncated at the limits.
+The term "range", refers to the range of a random variable, unless stated otherwise.
 
-In the context of plotting functions, limits refer to the min/max values of axes.\\
-In other contexts, limits refer the (allowable) min/max values of random variables.\\
-When evaluating CDFs, such limits become the corresponding limits of integration.
+In this package, there are three subtypes of such ranges:
 
-Also, they define the default values for sequence and plotting functions.
+\begin{itemize}
+\itemsep -0.15cm
+	\item The model range.
+	\item The mechanistic or theoretic limits, labelled Xlim.
+	\item The observed range.
+\end{itemize}
 
-\newpage
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Appendix C:\\Multivariate Probabilities}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-We can compute the probability that a single (continuous) random variable is between a pair of values as:
-\begin {equation*}
-\mathbb {P} (a \leq X \leq b)  = F_X (b) - F_X (a)
-\end {equation*}
+Both the model and observed ranges need to be inside the theoretic limits.
+The same applies to conditions, eval bins/points and the main input data.
 
-Where a is the lower limit and b is the upper limit.
+Bounded and unbounded random variables, have finite and infinite theoretic limits, respectively.
+Noting the option of being semi-bounded, which is the default for DKS models.
 
-This is the area under a univariate PDF.
+In the unbounded discrete case, the the model range is observed range +/- half the decremented bandwidth (which needs to be odd), at each end.
+In the unbounded continuous case, the the model range is observed range +/- half the bandwidth, at each end.
 
-Likewise, we can compute the probability that two (continuous) random variables are between two pairs of values as:
-\begin {align*}
-\mathbb {P} (a_1 \leq X_1 \leq b_1, \hspace {0.3cm} a_2 \leq X_2 \leq b_2)
-	&= \sum P^{\binom{2}{2}} - \sum P^{\binom{2}{1}} + \sum P^{\binom{2}{0}}\\ \\
-	&= F_{(X1, X2)} (b_1, b_2)\\
-	&- [F_{(X1, X2)} (a_1, b_2) + F_{(X1, X2)} (b_1, a_2)]\\
-	&+ F_{(X1, X2)} (a_1, a_2)
-\end {align*}
-
-Where $\sum P^{\binom{m}{k}}$ is shorthand for the sum of the m-variate CDF evaluated with each possible combination of k b-terms and (m - k) a-terms.
-
-And where a is a vector of lower limits and b is a vector of upper limits.
-
-This is the volume under the bivariate PDF.
-
-For three and four variables we have:
-\begin {align*}
-&\mathbb {P} (a_1 \leq X_1 \leq b_1, \hspace {0.3cm} a_2 \leq X_2 \leq b_2, \hspace {0.3cm} a_3 \leq X_3 \leq b_3)\\
-	&\hspace{1cm}= \sum P^{\binom{3}{3}} - \sum P^{\binom{3}{2}} + \sum P^{\binom{3}{1}} - \sum P^{\binom{3}{0}}\\ \\
-	&\hspace{1cm}= F_{(X1, X2, X3)} (b_1, b_2, b_3)\\
-	&\hspace{1cm}- [F_{(X1, X2, X3)} (a_1, b_2, b_3) + F_{(X1, X2, X3)} (b_1, a_2, b_3) + F_{(X1, X2, X3)} (b_1, b_2, a_3)]\\
-	&\hspace{1cm}+ [F_{(X1, X2, X3)} (a_1, a_2, b_3) + F_{(X1, X2, X3)} (a_1, b_2, a_3) + F_{(X1, X2, X3)} (b_1, a_2, a_3)]\\
-	&\hspace{1cm}- F_{(X1, X2, X3)} (a_1, a_2, a_3)\\ \\
-&\mathbb {P} (a_1 \leq X_1 \leq b_1, \hspace {0.3cm} a_2 \leq X_2 \leq b_2, \hspace {0.3cm} a_3 \leq X_3 \leq b_3, \hspace {0.3cm} a_4 \leq X_4 \leq b_4)\\
-	&\hspace{1cm}= \sum P^{\binom{4}{4}} - \sum P^{\binom{4}{3}} + \sum P^{\binom{4}{2}} - \sum P^{\binom{4}{1}} + \sum P^{\binom{4}{0}}
-\end {align*}
-
-More generally (given a continuous multivariate CDF, $F_{(X1, X2, ..., Xm)}$, for m random variables), we have:
-\begin{equation*}
-\mathbb {P} (a_1 \leq X_1 \leq b_1, \hspace {0.3cm} a_2 \leq X_2 \leq b_2, \hspace {0.15cm} ..., \hspace {0.15cm} a_m \leq X_m \leq b_m) =
-\sum_{k \in [0, m] }\Big((-1)^{m-k} \sum P^{\binom{m}{k}}\Big)
-\end{equation*}
+In the bounded case, the model range is the same except that it is truncated, if it would fall outside the theoretic limits, which also means that a truncated smoothing algorithm is used.
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Appendix D:\\Conditional Formulae}
+\section* {Appendix C:\\Discrete Kernel Smoothing Formulae}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-We can compute univariate-conditional (continuous) distributions, with one random variable conditional on one other variable, using:
-\begin {align*}
-f_{Y} (y)
-	&= f_{(Y \mid X = x)} (y)\\
-	&= \frac {f_{(X1,X2)} (x_1=x, x_2=y)}{f_{X1} (x_1=x)}\\ \\
-F_{Y} (y)
-	&= F_{(Y \mid X = x)} (y)\\
-	&= \int_{-\infty}^{y} \frac {f_{(X1,X2)} (x_1=x, x_2=u)}{f_{X1} (x_1=x)} du
-\end {align*}
-
-We can compute univariate-conditional (continuous) distributions, with one random variable conditional on multiple other variables, using:
-\begin {align*}
-f_{Y} (y)
-	&= f_{(Y \mid X1=x1, X2=x2, ..., X[m-1] = x[m-1])} (y)\\
-	&= \frac {f_{(X1,X2, ..., Xm)} (\$X, \$Y_{\text{uv}})}{f_{(X1, X2, ..., X[\text {ncon}])} (\$X)}\\
-	&= \frac {f_{(X1,X2, ..., Xm)} (x_1=x_1, x_2=x_2, ..., x_{[\text {ncon}]}=x_{[\text {ncon}]}, \hspace {0.4cm} x_m=y)}{f_{(X1, X2, ..., X[\text {ncon}])} (x_1=x_1, x_2=x_2, ..., x_{[\text {ncon}]}=x_{[\text {ncon}]})}\\
-	&= \frac {f_{(X1,X2, ..., Xm)} (x_1=x_1, x_2=x_2, ..., x_{[m-1]}=x_{[m-1]}, \hspace {0.4cm} x_m=y)}{f_{(X1, X2, ..., X[m-1])} (x_1=x_1, x_2=x_2, ..., x_{[m-1]}=x_{[m-1]})}\\ \\
-F_{Y} (y)
-	&= F_{(Y \mid X1=x1, X2=x2, ..., X[m-1]=x[m-1])} (y)\\
-	&= \int_{-\infty}^{y} \frac {f_{(X1,X2, ..., Xm)} (\$X, \$U_{\text{uv}})}{f_{(X1,X2, ..., X_{[\text {ncon}]})} (\$X)} du\\
-	&= \int_{-\infty}^{y} \frac {f_{(X1,X2, ..., Xm)} (x_1=x_1, x_2=x_2, ..., x_{[\text {ncon}]}=x_{[\text {ncon}]}, \hspace {0.4cm} x_m=u)}{f_{(X1,X2, ..., X[\text {ncon}])} (x_1=x_1, x_2=x_2, ..., x_{[\text {ncon}]}=x_{[\text {ncon}]})} du\\
-	&= \int_{-\infty}^{y} \frac {f_{(X1,X2, ..., Xm)} (x_1=x_1, x_2=x_2, ..., x_{[m-1]}=x_{[m-1]}, \hspace {0.4cm} x_m=u)}{f_{(X1,X2, ..., X[m-1])} (x_1=x_1, x_2=x_2, ..., x_{[m-1]}=x_{[m-1]})} du
-\end {align*}
-
-Note that the convention in this package, is that conditioning variables are enumerated first, and the conditional variables last.
-
-In the univariate-conditional case, ncon (the number of conditions) is equal to m (the total number of variables) minus one.
-
-This can be further generalized to compute multivariate-conditional (continuous) distributions, with M random variables conditional on multiple other variables, using:
-\begin {align*}
-	f_{Y1, Y2, ... YM} (y_1, y_2, ..., y_M)
-	&= f_{(Y1, Y2, ..., YM \mid X1=x1, X2=x2, ..., X[\text {\text {ncon}}] = x[\text {\text {ncon}}])} (y_1, y_2, ..., y_M)\\
-	&=\frac {f_{(X1,X2, ..., Xm)} (\$X, \$Y_{\text{mv}})}{f_{(X1, X2, ..., X[\text {\text {ncon}}])} (\$X)}\\ \\
-	F_{Y1, Y2, ..., YM} (y_1, y_2, ..., y_M)
-	&= F_{(Y1, Y2, ..., YM \mid X1=x1, X2=x2, ..., X[\text {ncon}]=x[\text {ncon}])} (y_1, y_2, ..., y_M)\\
-	&= \int_{-\infty}^{y_1} \int_{-\infty}^{y_2} ... \int_{-\infty}^{y_M} \frac {f_{(X1,X2, ..., Xm)} (\$X, \$U_{\text {mv} })}{f_{(X1,X2, ..., X[\text {ncon}])} (\$X)} du_M, ..., du_2, du_1
-\end {align*}
-
-Where the subexpressions expand as follows:
-
-$\$X: \{x_1=x_1, x_2=x_2, ..., x_{[\text {ncon}]}=x_{[\text {ncon}]}\}$
-
-$\$Y_{\text{mv}}: \{x_{[\text {ncon}+1]}=y_1, x_{[\text {ncon}+2]}=y_2, ...,  x_{[\text {ncon}+M]}=y_M\}$
-
-$\$U_{\text{mv}}: \{x_{[\text {ncon}+1]}=u_1, x_{[\text {ncon}+2]}=u_2, ...,  x_{[\text {ncon}+M]}=u_M\}$
-
-These formulae do not use all the data. A conditional window is computed, and observations outside the window are discarded. There needs to be at least one observation within the conditional window, otherwise, the denominator is undefined.
-
-It's not necessary to compute all of the expression, in each evaluation of the PDF or CDF. Rather, the denominator (which is a multivariate PDF) and the first part of the numerator (given later), can be computed when the object is constructed.
-
-And it's not necessary to integrate the expression, as such.
-
-The algorithms for computing the multivariate PDFs and CDFs via kernel smoothing (also, given later), can be combined.
-
-\newpage
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Appendix E:\\Discrete Kernel Smoothing Formulae}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\tmu{Note that discrete kernels (but not a discrete version of kernel smoothing) may be removed in the future.}
 
 Discrete kernels (without standardized intervals), take the form:
 \begin {align*}
@@ -1044,13 +971,11 @@ w_i = \frac {h_i}{\sum_i h_i}
 
 And where $\mathbf {x}^*$ is a vector of (integer-valued) bins and $\mathbf {h}$ is a vector of frequencies, both of which, are of length $n$, and $i \in [1, n]$.
 
-In general, frequencies are integer-valued, however, there's no requirement for this.
-
-Bounded PMFs and CDFs can be computed by modifying the expressions above, such that mass estimates are truncated at the lower or upper boundaries. The x and h values are reflected about the boundaries prior to smoothing, otherwise, estimates near the boundaries tend to be too small.
+If truncated discrete smoothing is required, then (a subset of) the data is reflected about the truncation bins.
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Appendix F:\\Continuous Kernel Smoothing Formulae}
+\section* {Appendix D:\\Continuous Kernel Smoothing Formulae}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Continuous kernels (with standardized intervals), take the form:
 \begin {align*}
@@ -1090,6 +1015,12 @@ Multivariate PDFs and CDFs can be computed, as follows:
 
 Where $\mathbf{bw}$ is a bandwidth vector, $\mathbf{x}^*$ is a matrix with $n$ rows (observations) and $m$ columns (variables), and $\mathbf{x}$ is a vector of points on the x-plane, where the function is evaluated.
 
+Continuous PDFs use the ratio of two multivariate expressions, with the n term cancelling out.\\
+Continuous CDFs are similiar, but rather than numerically integrate the ratio of two multivariate expressions, the top expression is modified to produce a hybrid algorithm between the PDF and CDF algorithms.
+
+If truncated continuous smoothing is required, then (a subset of) the data is reflected about the truncation points.\\
+This is done is such a way, that there's a maximum of three times n, regardless of the number of variables.
+
 Weighted versions of these formulae are created by substituting:
 \begin {equation*}
 \frac {\sum_i (\$ \text {SUB-EXPRESSION}) }{n}
@@ -1105,9 +1036,10 @@ Subject to:
 \sum_i w_i = 1
 \end {equation*}
 
+
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Appendix G:\\Empirical-Like Formulae}
+\section* {Appendix E:\\Empirical-Like Formulae}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 An empirical cumulative distribution function, which is a step function, can be computed by:
 \begin {equation*}
@@ -1129,9 +1061,10 @@ This function can be used to generate a sequence of points:
 An empirical-like distribution, which is a continuous function, can be computed by using a cubic Hermite spline to interpolate this sequence. 
 
 
+
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Appendix H:\\Fuzzy Clustering\\(And Weighted Multivariate Kernel Smoothing)}
+\section* {Appendix F:\\Fuzzy Clustering\\(And Weighted Multivariate Kernel Smoothing)}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Fuzzy clustering computes a membership matrix, from some data.
 
@@ -1199,28 +1132,35 @@ par (p0)
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Appendix I:\\Data Preparation}
+\section* {Appendix G:\\Data Preparation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 <<>>=
-ph.data.prep (eval=FALSE, echo=TRUE)
+prep.ph.data (eval=FALSE, echo=TRUE)
 @
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Appendix J:\\Datasets}
+\section* {Appendix H:\\Datasets}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 <<>>=
-headt (cbind (traffic.bins, freq=traffic.freq) )
+ht <- function (object)
+{   print (head (object, 2) )
+    print (tail (object, 2) )
+}
 @
 
 <<>>=
-headt (trees)
-headt (quakes)
-headt (crimes)
-headt (data.frame (crime.type=crime.type$crime.type, n.arrests) )
-headt (data.frame (species, sepal.length, sepal.width) )
-headt (unemployment)
+ht (cbind (traffic.bins, freq=traffic.freq) )
+@
+
+<<>>=
+ht (trees2)
+ht (quakes2)
+ht (crimes)
+ht (data.frame (crime.type=crime.type$crime.type, n.arrests) )
+ht (data.frame (species, sepal.length, sepal.width) )
+ht (unemployment)
 @
 
 \end{document}

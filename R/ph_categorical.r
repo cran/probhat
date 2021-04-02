@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2020
+#Copyright (C), Abby Spurdle, 2018 to 2021
 
 #This program is distributed without any warranty.
 
@@ -11,34 +11,32 @@
 #Also, this license should be available at:
 #https://cran.r-project.org/web/licenses/GPL-2
 
-.catuv = function (f, classes, g, w, freq=FALSE)
+.catuv = function (f, classes, g, h)
 {	objs = .cat.data (g)
-	variable.names = nlevels = levels = n = m = g = NULL
-	UNPACK (objs)
+	gnames = nlevels = levels = n = m = g = NULL
+	.UNPACK (objs)
  
 	if (m != 1)
 		stop ("uv model needs one variable")
-	variable.name = variable.names
+	gname = gnames
 	levels = levels [[1]]
 	g = g [,1]
 
-	if (missing (w) ) w = NA
-	is.weighted = (! is.na (w [1]) )
-	w = .val.w (is.weighted, n, w, FALSE)
+	h = .val.hvec (n, h)
+	.gsum = sum (h)
 
-	.probs = .iterate.uv (.pmfuv.cat.eval.scalar, is.weighted, n, g, w / sum (w), u=1:nlevels)
+	.probs = .iterate.uv (.pmfuv.cat.eval.scalar, n, g, h / .gsum, u=1:nlevels)
 	.PROBS = cumsum (.probs)
 	.PROBS [nlevels] = 1
-	EXTEND (f, classes,
-		.probs, .PROBS,
-		is.weighted, freq,
-		variable.name, nlevels, xlim = c (1, nlevels), levels, n, g, w)
+	.EXTEND (f, classes,
+		.probs, .PROBS, .gsum,
+		gname, nlevels, glim = c (1, nlevels), levels, n, g, h)
 }
 
-.catc = function (f, classes, g, w, freq, conditions, throw.warning)
-{	objs = .cat.data (g)
-	variable.names = nlevels = levels = n = m = g = NULL
-	UNPACK (objs)
+.catc = function (f, classes, g, h, conditions, throw.warning)
+{	objs = .cat.data (g, TRUE)
+	gnames = nlevels = levels = n = m = g = NULL
+	.UNPACK (objs)
 
 	if (missing (conditions) )
 		stop ("conditions required")
@@ -48,27 +46,27 @@
 	M = m - ncon
 	if (M != 1)
 		stop ("uv conditional models need one random variable")
+	h = .val.hvec (n, h)
 
 	names = names (conditions)
 	if (is.null (names) )
-		names (conditions) = variable.names [1:ncon]
+		names (conditions) = gnames [1:ncon]
 	else
-	{	J = match (names, variable.names)
+	{	J = match (names, gnames)
 		if (any (is.na (J) ) )
 			stop ("condition names not in variable names")
 		J = c (J, (1:m)[-J])
-		variable.names = variable.names [J]
+		gnames = gnames [J]
 		nlevels = nlevels [J]
 		levels = levels [J]
 		g = g [,J]
 	}
-	if (missing (w) ) w = NA
-	is.weighted = (! is.na (w [1]) )
-	w = .val.w (is.weighted, n, w, FALSE)
-	
+
 	I = rep (TRUE, n)
 	for (k in 1:ncon)
 		I = I & .in.col (nlevels [k], levels [[k]], conditions [[k]], g [,k])
+	
+	n0 = n
 	n = sum (I)
 	if (n == 0)
 	{	if (throw.warning)
@@ -76,19 +74,18 @@
 		NULL
 	}
 	else
-	{	variable.name = variable.names [m]
-		nlevels = nlevels [m]
+	{	nlevels = nlevels [m]
 		levels = levels [[m]]
 		g = g [I, m, drop=FALSE]
-		if (missing (w) ) w = NA
-		if (is.weighted)
-			w = w [I]
-		.probs = .iterate.uv (.pmfuv.cat.eval.scalar, is.weighted, n, g, w / sum (w), u=1:nlevels)
+		h = h [I]
+		.gsum = sum (h)
+
+		.probs = .iterate.uv (.pmfuv.cat.eval.scalar, n, g, h / .gsum, u=1:nlevels)
 		.PROBS = cumsum (.probs)
 		.PROBS [nlevels] = 1
-		EXTEND (f, classes,
-			.probs, .PROBS,
-			is.weighted, variable.name, conditions, freq, nlevels, xlim = c (1, nlevels), levels, n, g, w)
+		.EXTEND (f, classes,
+			.probs, .PROBS, .gsum,
+			gnames, conditions, nlevels, glim = c (1, nlevels), levels, n0, n, m, g, h)
 	}
 }
 
@@ -123,12 +120,27 @@
 }
 
 #unpacked by .catuv, .catc, .mix
-.cat.data = function (x)
-{	if (is.list (x) )
+.cat.data = function (x, is.cond=FALSE)
+{	if (is.matrix (x) )
+	{	if (ncol (x) == 1)
+		{	gname = colnames (x)
+			if (is.null (gname) )
+			{	warning ("applying default variable names, to single variable")
+				gname = "g"
+			}
+			x = .cat.data.ext (x)
+			x = .cat.data (list (g=x) )
+			x$gnames = gname
+			x
+		}
+		else
+			stop ("currently, only 1-col matrices allowed")
+	}
+	else if (is.list (x) )
 	{	m = length (x)
 		if (m == 0)
 			stop ("needs one or more categorical variables")
-		variable.names = .varnames.ext (m, names (x), "g")
+		gnames = .varnames.ext (m, names (x), "g", is.cond)
 
 		y1 = .cat.data.ext (x [[1]])
 		lev1 = levels (y1)
@@ -155,11 +167,11 @@
 				y [,j] = as.integer (yj)
 			}
 		}
-		LIST (variable.names, nlevels, levels, n, m, g=y)
+		.LIST (gnames, nlevels, levels, n, m, g=y)
 	}
 	else
 	{	x = .cat.data.ext (x)
-		.cat.data (list (x=x) )
+		.cat.data (list (g=x) )
 	}
 }
 
@@ -186,65 +198,59 @@
 	x
 }
 
-pmfuv.cat = function (g, h, ..., freq=FALSE)
-	.catuv (.pmfuv.cat.eval, .CV.pmfuv.cat, g, h, freq)
+pmfuv.cat = function (g, h=1)
+	.catuv (.pmfuv.cat.eval, .CV.pmfuv.cat, g, h)
 
-cdfuv.cat = function (g, h, ...)
+cdfuv.cat = function (g, h=1)
 	.catuv (.cdfuv.cat.eval, .CV.cdfuv.cat, g, h)
 
-qfuv.cat = function (g, h, ...)
+qfuv.cat = function (g, h=1)
 	.catuv (.qfuv.cat.eval, .CV.qfuv.cat, g, h)
 
-pmfc.cat = function (g, h, ..., conditions, warning=TRUE, freq=FALSE)
-	.catc (.pmfuv.cat.eval, .CV.pmfc.cat, g, h, freq, conditions, warning)
+pmfc.cat = function (g, h=1, ..., conditions, warning=TRUE)
+{	.arg.error (...)
+	.catc (.pmfuv.cat.eval, .CV.pmfc.cat, g, h, conditions, warning)
+}
 	
-cdfc.cat = function (g, h, ..., conditions, warning=TRUE)
-	.catc (.cdfuv.cat.eval, .CV.cdfc.cat, g, h, FALSE, conditions, warning)
+cdfc.cat = function (g, h=1, ..., conditions, warning=TRUE)
+{	.arg.error (...)
+	.catc (.cdfuv.cat.eval, .CV.cdfc.cat, g, h, conditions, warning)
+}
 
-qfc.cat = function (g, h, ..., conditions, warning=TRUE)
-	.catc (.qfuv.cat.eval, .CV.qfc.cat, g, h, FALSE, conditions, warning)
+qfc.cat = function (g, h=1, ..., conditions, warning=TRUE)
+{	.arg.error (...)
+	.catc (.qfuv.cat.eval, .CV.qfc.cat, g, h, conditions, warning)
+}
 
-.pmfuv.cat.eval = function (g, ..., freq)
-{	. = THAT ()
-	x = .val.g (.$nlevels, .$levels, g)
-	if (missing (freq) )
-		freq = .$freq
+.pmfuv.cat.eval = function (g, ..., freq=FALSE, n)
+{	. = .THAT ()
+	x = .val.fg (.$nlevels, .$levels, g)
 	p = .$.probs [x]
-	if (freq)
-	{	if (.$is.weighted) 
-			sum (.$w) * p
-		else
-			sum (.$n) * p
-	}
-	else
-		p
+	.scale.freq (p, freq, .$.gsum, n)
 }
 
-.cdfuv.cat.eval = function (q)
-{	. = THAT ()
-	q = .val.g (.$nlevels, .$levels, q)
-	.$.PROBS [q]
+.cdfuv.cat.eval = function (g, ..., freq=FALSE, n)
+{	. = .THAT ()
+	q = .val.fg (.$nlevels, .$levels, g)
+	p = .$.PROBS [q]
+	.scale.freq (p, freq, .$.gsum, n)
 }
 
-.qfuv.cat.eval = function (p, ..., name=FALSE)
-{	. = THAT ()
+.qfuv.cat.eval = function (p, ..., level.names=FALSE)
+{	. = .THAT ()
 	.test.y.ok (p)
 	x = .iterate.uv (.qfuv.cat.eval.2, .$.PROBS, u=p)
-	if (name)
+	if (level.names)
 		.$levels [x]
 	else
 		x
 }
 
-.val.g = function (nlevels, levels, x)
+.val.fg = function (nlevels, levels, x)
 	.cat.2int (nlevels, levels, x, "unsuitable input for evaluation")
 
-.pmfuv.cat.eval.scalar = function (is.weighted, n, x, w, u)
-{	if (is.weighted)
-		sum (w [u == x])
-	else
-		sum (u == x) / n
-}
+.pmfuv.cat.eval.scalar = function (n, x, h, u)
+	sum (h [u == x])
 
 .qfuv.cat.eval.2 = function (PROBS, y)
 	which (y <= PROBS)[1]
