@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2018 to 2021
+#Copyright (C), Abby Spurdle, 2019 to 2021
 
 #This program is distributed without any warranty.
 
@@ -88,9 +88,9 @@ pwith.cksmv = function (sf, xlim = cbind (a, b), ..., a=-Inf, b=Inf)
 	.pwith.eval.mv (.$bw, .$kernel@F, data$n, .$m, data$x, xlim [,1], xlim [,2], isw=.$is.weighted, data$w)
 }
 
-psv = function (fh)
-{	x = attr (fh, "data")$x
-	fh (x)
+psv = function (sf)
+{	x = attr (sf, "data")$x
+	sf (x)
 }
 
 ph4.pcomp2 = function (fh, gh, sqrt.mse=TRUE, aggregate=TRUE, dfh = psv (fh), dgh = psv (gh) )
@@ -110,26 +110,68 @@ ph4.pcomp2 = function (fh, gh, sqrt.mse=TRUE, aggregate=TRUE, dfh = psv (fh), dg
 		c (kf, kg)
 }
 
-pdist = function (fhs, ..., sqrt.mse=TRUE)
-{	if (! is.list (fhs) )
+pdist = function (sf, ..., sqrt.mse=TRUE)
+{	if (! is.list (sf) )
 		stop ("list required")
-	nfh = length (fhs)
+	nfh = length (sf)
 	fv0 = vector ("list", nfh)
 	dists = matrix (0, nfh, nfh)
 	for (i in seq_len (nfh) )
-	{	if (! is.pdf (fhs [[i]]) )
-			stop ("fhs should only contain (probhat) density functions")
-		fv0 [[i]] = psv (fhs [[i]])
+	{	if (! is.pdf (sf [[i]]) )
+			stop ("sf should only contain (probhat) density functions")
+		fv0 [[i]] = psv (sf [[i]])
 	}
 	if (nfh > 1)
 	{	for (i in 1:(nfh - 1) )
 		{	for (j in (i + 1):nfh)
 			{	dists [i, j] = dists [j, i] =
-					ph4.pcomp2 (fhs [[i]], fhs [[j]], sqrt.mse, TRUE, fv0 [[i]], fv0 [[j]])
+					ph4.pcomp2 (sf [[i]], sf [[j]], sqrt.mse, TRUE, fv0 [[i]], fv0 [[j]])
 			}
 		}
 	}
-	if (inherits (fhs, "ph4.gset") )
-		rownames (dists) = colnames (dists) = attr (fhs, "levnames")
+	if (inherits (sf, "ph4.gset") )
+		rownames (dists) = colnames (dists) = attr (sf, "levnames")
 	dists
+}
+
+ph4.rdist = function (d, n)
+{	if (missing (n) )
+		trim = FALSE
+	else
+	{	trim = TRUE
+		ntop = n
+	}
+
+	n = nrow (d)
+	m = ncol (d)
+	if (n != m || n < 2)
+		stop ("square matrix, with at least 2 rows required")
+	names = rownames (d)
+	if (is.null (names) )
+		names = paste0 ("v", 1:n)
+	
+	n2 = (n - 1) * (n) / 2
+	if (trim && ntop > n2)
+		stop (sprintf ("n=%s (top-values), but only %s upper-right triangle values", ntop, n2) )
+	names2a = names2b = character (n2)
+	d2 = numeric (n2)
+
+	k = 1
+	for (i in 1:(n - 1) )
+	{	for (j in (i + 1):n)
+		{	names2a [k] = names [i]
+			names2b [k] = names [j]
+			d2 [k] = d [i, j]
+			k = k + 1
+		}
+	}
+
+	I = order (d2)
+	df = data.frame (a=names2a, b=names2b, d=d2)[I,]
+	df = data.frame (comb = paste (names2a, names2b, sep=":"), dist=d2)[I,]
+	rownames (df) = 1:n2
+	if (trim)
+		df [1:ntop,]
+	else
+		df
 }

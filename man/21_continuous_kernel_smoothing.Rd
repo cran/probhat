@@ -27,18 +27,21 @@ pdfuv.cks (x, \dots, w,
     bw, smoothness=1,
     kernel=BIWEIGHT.CKERNEL,
     spline=TRUE, bw.method="ph.default", nc=30,
+    trtype="local",
     Xlim = cbind (a, b), a=-Inf, b=Inf)
 
 cdfuv.cks (x, \dots, w,
     bw, smoothness=1,
     kernel=BIWEIGHT.CKERNEL,
     spline=TRUE, bw.method="ph.default", nc=30, tail="lower",
+    trtype="local",
     Xlim = cbind (a, b), a=-Inf, b=Inf)
 
 qfuv.cks (x, \dots, w,
     bw, smoothness=1,
     kernel=BIWEIGHT.CKERNEL,
     bw.method="ph.default", nc=30,
+    trtype="local",
     Xlim = cbind (a, b), a=-Inf, b=Inf)
 
 #multivariate
@@ -60,28 +63,32 @@ pdfc.cks (x, \dots, conditions, w,
     kernel=BIWEIGHT.CKERNEL,
     spline=TRUE, bw.method="ph.default", nc=30,
     Xlim = cbind (a, b), a=-Inf, b=Inf,
-    preserve.range=FALSE, as.cset=FALSE, warning=TRUE)
+    preserve.range=FALSE, as.cset=FALSE, as.list.cset=FALSE,
+    warning=TRUE)
 
 cdfc.cks (x, \dots, conditions, w,
     bw, smoothness=1,
     kernel=BIWEIGHT.CKERNEL,
     spline=TRUE, bw.method="ph.default", nc=30, tail="lower",
     Xlim = cbind (a, b), a=-Inf, b=Inf,
-    preserve.range=FALSE, as.cset=FALSE, warning=TRUE)
+    preserve.range=FALSE, as.cset=FALSE, as.list.cset=FALSE,
+    warning=TRUE)
 
 qfc.cks (x, \dots, conditions, w,
     bw, smoothness=1,
     kernel=BIWEIGHT.CKERNEL,
     bw.method="ph.default", nc=30,
     Xlim = cbind (a, b), a=-Inf, b=Inf,
-    preserve.range=FALSE, as.cset=FALSE, warning=TRUE)
+    preserve.range=FALSE, as.cset=FALSE, as.list.cset=FALSE,
+    warning=TRUE)
 
 pdfmvc.cks (x, \dots, conditions, w,
     bw, smoothness=1,
     kernel=BIWEIGHT.CKERNEL,
     bw.method="ph.default",
     Xlim = cbind (a, b), a=-Inf, b=Inf,
-    preserve.range=FALSE, as.cset=FALSE, warning=TRUE)
+    preserve.range=FALSE, as.cset=FALSE, as.list.cset=FALSE,
+    warning=TRUE)
 
 #multivariate-conditional
 cdfmvc.cks (x, \dots, conditions, w,
@@ -89,7 +96,8 @@ cdfmvc.cks (x, \dots, conditions, w,
     kernel=BIWEIGHT.CKERNEL,
     bw.method="ph.default", tail="lower",
     Xlim = cbind (a, b), a=-Inf, b=Inf,
-    preserve.range=FALSE, as.cset=FALSE, warning=TRUE)
+    preserve.range=FALSE, as.cset=FALSE, as.list.cset=FALSE,
+    warning=TRUE)
 
 #other
 chqf.cks (x, \dots, w,
@@ -131,6 +139,9 @@ chqf.cks (x, \dots, w,
 	Character vector of length [1 or M], either "lower" or "upper".\cr
 	If lower (the default), lower tail probabilities, P (..., Xj <= xj, ...), are used.\cr
 	If upper, upper tail probabilities, P (..., X >= xj, ...), are used.}
+\item{trtype}{
+	String, either "simple", "local" or "reflect", refer to vignette.\cr
+	Note that the local method is used, where there's no trtype argument.}
 \item{Xlim}{
 	An ([1 or m] by 2) numeric matrix, giving the limits of each X variable.\cr
 	The corresponding random variable is regarded as bounded, if either limit is finite.\cr
@@ -143,7 +154,10 @@ chqf.cks (x, \dots, w,
 	If false (the default), the range is based on the data within a conditioning window, which is often smaller.}
 \item{as.cset}{
 	Logical, if true, a cset object is returned regardless of the number of conditions.\cr
-	Note that this is ignored, if there's two or more sets of conditions.}
+	Note that this is ignored, if there is not one set of conditions.\cr\cr
+	Also note that as.list.cset needs to be true, if as.cset is true, or the number of sets of conditions is not one.\cr
+	(This requirement is temporary).}
+\item{as.list.cset}{Logical, refer to as.cset, above.}
 \item{warning}{Logical, if true, generate warning if there's no observations within the conditional window.}
 \item{\dots}{Additional arguments not allowed}
 }
@@ -161,7 +175,7 @@ In conditional models, variables are reordered (internally), if there's named co
 Note you can check names (and their order), with names method.\cr
 (By default, only the conditional variables are returned).
 
-Parameters that neeed to match m (the total number of variables), such as bw, smoothness and Xlim, will match the original data, regardless of the order of the conditions.\cr
+Parameters that need to match m (the total number of variables), such as bw, smoothness and Xlim, will match the original data, regardless of the order of the conditions.\cr
 i.e. The first bw value will match the first column in x, regardless of the order of the conditions.
 
 However, parameters that need to match M (the number of random variables), such as tail, need to match the order of the resulting conditional variables.\cr
@@ -172,7 +186,7 @@ Refer to the vignette for more information.
 \value{
 Self-referencing function objects.
 
-Refer to \link{Mockup Function Objects}
+Refer to \link{Runtime Function Objects}
 
 Except:\cr
 The constructors for conditional distributions, return NULL, if there's no observations within the conditional window.\cr
@@ -246,7 +260,7 @@ ph.mode (cfh, TRUE)
 #############
 cons.c2 <- cbind (height=25:26, girth=35:36)
 
-cfhs <- as.list (pdfc.cks (trees2, conditions=cons.c2) )
+cfhs <- pdfc.cks (trees2, conditions=cons.c2, as.list.cset=TRUE)
 
 plot (cfhs [[1]])
 

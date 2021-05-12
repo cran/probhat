@@ -75,11 +75,13 @@ Refer to the vignette for more information.
 
 Note that if x has non-unique values, then duplicated x (and their h) values are aggregated.\cr
 And currently, any row names will be ignored.
+
+Also note that the truncation method may change in future updates.
 }
 \value{
 Self-referencing function objects.
 
-Refer to \link{Mockup Function Objects}
+Refer to \link{Runtime Function Objects}
 }
 \references{Refer to the vignette for an overview, references and better examples.}
 \seealso{

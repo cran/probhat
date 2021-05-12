@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2018 to 2021
+#Copyright (C), Abby Spurdle, 2019 to 2021
 
 #This program is distributed without any warranty.
 
@@ -39,7 +39,7 @@
 		.incr.chs (cx, cy, lower, outside = c (0, 1) )
 	}
 	else
-		chs (cx, cy, outside = c (0, 0) )
+		chs (cx, cy, fmin=0, outside = c (0, 0) )
 }
 
 .modified.spline.transposed = function (cx, cy, lower=TRUE)

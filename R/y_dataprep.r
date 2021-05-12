@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2018 to 2021
+#Copyright (C), Abby Spurdle, 2019 to 2021
 
 #This program is distributed without any warranty.
 
@@ -28,7 +28,7 @@ prep.ph.data = function (..., eval=TRUE, echo=FALSE)
 	lines [13] = '#Volume (-> m ^ 3)'
 	lines [14] = 'trees2 [,"volume"] <- 0.0283168 * trees2 [,"volume"]'
 	lines [15] = ''
-	lines [16] = 'height <- trees2 [,"height", drop=FALSE]'
+	lines [16] = 'height <- sort (trees2 [,"height", drop=FALSE])'
 	lines [17] = ''
 	lines [18] = 'quakes2 <- as.matrix (datasets::quakes)[,c (2, 1, 3:4)]'
 	lines [19] = ''

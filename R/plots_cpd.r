@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2018 to 2021
+#Copyright (C), Abby Spurdle, 2019 to 2021
 
 #This program is distributed without any warranty.
 
@@ -32,6 +32,8 @@ plot_cpd = function (sf, data=FALSE, ...,
 		line.width = options$main.line.width
 	if (missing (line.color) )
 		line.color = options$main.line.color
+
+	xaxs.type = "i"
 
 	if (is.pdf (sf) )
 	{	h0 = 0
@@ -93,9 +95,12 @@ plot_cpd = function (sf, data=FALSE, ...,
 		ylim [1] = ylim [2] / (-4.5)
 	ylim [2] = ylim [2] + vo
 
+	if (is.cks (sf) && (sf %$% ".any.trunc") )
+		xaxs.type = "r"
+
 	if (! add)
 	{	plot.new ()
-		plot.window (xlim=xlim, ylim=ylim, xaxs="i", yaxs="i")
+		plot.window (xlim=xlim, ylim=ylim, xaxs=xaxs.type, yaxs="i")
 		title (main=main, xlab=xlab, ylab=ylab)
 	}
 

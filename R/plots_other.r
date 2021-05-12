@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2018 to 2021
+#Copyright (C), Abby Spurdle, 2019 to 2021
 
 #This program is distributed without any warranty.
 
@@ -121,32 +121,3 @@ ph.plotf.ph4.gset = function (sfs, ..., span.win=FALSE, legend=TRUE, colors)
 
 ph.plotf.ph4.mset = function (sfs, ..., nr, nc, colors)
 	.plot.distribution.set.stacked (sfs, nr, nc, colors, ...)
-
-ph.reflect.demo = function (both.dirs=FALSE)
-{	x = 5:8
-	y = c (5, 5, 4, 6)
-
-	if (both.dirs)
-		p0 = structure(c (4, 4, 5, 4, 4, 3, 2, 2), .Dim = c(4L, 2L) )
-	else
-		p0 = structure(c (4, 4, 4, 4, 6, 5, 4, 4), .Dim = c(4L, 2L) )
-	ref = .reflect.mv (c (TRUE, both.dirs), c (4, 2), 1, 4, cbind (x, y) )
-	L = c (-2.5, 8.5)
-
-	plot (x, y, pch=NA, xlim=L, ylim=L)
-	if (both.dirs)
-		rect (4, 2, 20, 20, border=NA, col="grey85")
-	else
-		rect (4, -20, 20, 20, border=NA, col="grey85")
-	box ()
-	for (i in 1:4)
-		lines (c (ref [i, 1], x [i]), c (ref [i, 2], y [i]), lty=2, col="grey60")
-	abline (v=0, h=0, lty=2, col="grey85")
-	if (both.dirs)
-		abline (h=2, lty=2)
-	abline (v=4, lty=2)
-	points (x, y, pch=16, xlim=L, ylim=L)
-
-	points (p0 [,1], p0 [,2], pch=4, lwd=2, cex=1.5, col="darkblue")
-	points (ref [,1], ref [,2], pch=16)
-}

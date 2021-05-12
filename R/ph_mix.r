@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2018 to 2021
+#Copyright (C), Abby Spurdle, 2019 to 2021
 
 #This program is distributed without any warranty.
 
@@ -198,26 +198,26 @@
 	}
 }
 
-pmfc.gmix = function (g, x, ..., conditions, warning=TRUE, w)
+ph4.pmfc.gmix = function (g, x, ..., conditions, warning=TRUE, w)
 {	.arg.error (...)
 	.gmix (.pmfuv.cat.eval, .CV.pmfc.gmix, g, x, w, conditions, warning, ...)
 }
 
-cdfc.gmix = function (g, x, ..., conditions, warning=TRUE, w)
+ph4.cdfc.gmix = function (g, x, ..., conditions, warning=TRUE, w)
 {	.arg.error (...)
 	.gmix (.cdfuv.cat.eval, .CV.cdfc.gmix, g, x, w, conditions, warning, ...)
 }
 
-qfc.gmix = function (g, x, ..., conditions, warning=TRUE, w)
+ph4.qfc.gmix = function (g, x, ..., conditions, warning=TRUE, w)
 {	.arg.error (...)
 	.gmix (.qfuv.cat.eval, .CV.qfc.gmix, g, x, w, conditions, warning, ...)
 }
 
-pdfc.xmix = function (g, x, ..., conditions, warning=TRUE, w)
+ph4.pdfc.xmix = function (g, x, ..., conditions, warning=TRUE, w)
 	.xmix (pdfuv.cks, pdfc.cks, .CV.pdfc.xmix, g, x, w, conditions, warning, ...)
 
-cdfc.xmix = function (g, x, ..., conditions, warning=TRUE, w)
+ph4.cdfc.xmix = function (g, x, ..., conditions, warning=TRUE, w)
 	.xmix (cdfuv.cks, cdfc.cks, .CV.cdfc.xmix, g, x, w, conditions, warning, ...)
 
-qfc.xmix = function (g, x, ..., conditions, warning=TRUE, w)
+ph4.qfc.xmix = function (g, x, ..., conditions, warning=TRUE, w)
 	.xmix (qfuv.cks, qfc.cks, .CV.qfc.xmix, g, x, w, conditions, warning, ...)

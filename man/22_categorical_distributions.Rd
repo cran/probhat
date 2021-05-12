@@ -54,7 +54,7 @@ Default variable names are generated, if the g list is unnamed.\cr
 \value{
 Self-referencing function objects.
 
-Refer to \link{Mockup Function Objects}
+Refer to \link{Runtime Function Objects}
 
 Except:\cr
 The constructors for conditional distributions, return NULL, if there's no observations within the conditional window.\cr

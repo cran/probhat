@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2018 to 2021
+#Copyright (C), Abby Spurdle, 2019 to 2021
 
 #This program is distributed without any warranty.
 
@@ -62,7 +62,7 @@ discretized.kernel = function (n, ck=BIWEIGHT.CKERNEL, ..., xlim)
 		{	I = (x >= xlim [1] & x <= xlim [2])
 			U = (x > xlim [2])
 			y = rep (0, nx)
-			y [I] = .PROBS [x - xlim [1] + 1]
+			y [I] = .PROBS [x [I] - xlim [1] + 1]
 			y [U] = 1
 		}
 		y

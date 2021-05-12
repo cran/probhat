@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2018 to 2021
+#Copyright (C), Abby Spurdle, 2019 to 2021
 
 #This program is distributed without any warranty.
 
@@ -123,6 +123,8 @@ is.el = function (object) inherits (object, "el")
 is.gmix = function (object) inherits (object, "gmix")
 is.xmix = function (object) inherits (object, "xmix")
 
+#note, currently, excludes gset
+#refer to ph.namesf.gset below
 ph.namesf.phmodel = function (sf, ..., all=FALSE)
 {	if (is.cat (sf) )
 		vars = attr (sf, "gname")
@@ -144,6 +146,9 @@ ph.namesf.phmodel = function (sf, ..., all=FALSE)
 	}
 	vars
 }
+
+ph.namesf.ph4.gset = function (sf, ...)
+	attr (sf, "levnames")
 
 .range.phpd = function (sf, infv=FALSE, freq=FALSE, n)
 {	if (infv)
@@ -326,18 +331,18 @@ ph.linesf.cpduv = function (sf, ..., xlim, n=200)
 	lines (x, y, ...)
 }
 
-mf.dfh = function (x, ..., freq=FALSE, n) 0
-mf.dFh = function (x, ..., freq=FALSE, n) 0
-mf.dFht = function (p) 0
-mf.gfh = function (g, ..., freq=FALSE, n) 0
-mf.gFh = function (g, ..., freq=FALSE, n) 0
-mf.gFht = function (p, ..., level.names=FALSE) 0
-mf.cfh = function (x) 0
-mf.cFh = function (x) 0
-mf.cFht = function (p) 0
-mf.cfh.mv = function (x) 0
-mf.cFh.mv = function (x) 0
-mf.chFht = function (p) 0
+ph.dfh.rtf = function (x, ..., freq=FALSE, n) 0
+ph.dFh.rtf = function (x, ..., freq=FALSE, n) 0
+ph.dFht.rtf = function (p) 0
+ph.gfh.rtf = function (g, ..., freq=FALSE, n) 0
+ph.gFh.rtf = function (g, ..., freq=FALSE, n) 0
+ph.gFht.rtf = function (p, ..., level.names=FALSE) 0
+ph.cfh.rtf = function (x) 0
+ph.cFh.rtf = function (x) 0
+ph.cFht.rtf = function (p) 0
+ph.cfh.rtf.mv = function (x) 0
+ph.cFh.rtf.mv = function (x) 0
+ph.chFht.rtf = function (p) 0
 
 .arg.error = function (...)
 {	expr = format ( (sys.call (-1)) )

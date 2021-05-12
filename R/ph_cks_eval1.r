@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2018 to 2021
+#Copyright (C), Abby Spurdle, 2019 to 2021
 
 #This program is distributed without any warranty.
 
@@ -17,27 +17,24 @@
 	if (.$is.spline)
 		.$spline.function (x)
 	else
-	{	data = .select.bdata (.$.any.trunc, .$data, .$.xpnd)
-		y = .iterate.uv (.pdfuv.cks.eval.scalar, .$is.weighted, .$kernel@f, .$bw, data$n, data$x, data$w, u=x)
-		.scale.val (y, .$.any.trunc, .$.scalef)
+	{	data = .select.bdata (.$.any.trunc, .$trtype, .$data, .$.xpnd)
+		y = .iterate.uv (.pdfuv.cks.eval.scalar, .$.internal.isw, .$kernel@f, .$bw, data$n, data$x, .$.internalw, u=x)
+		.scale.val (y, .$trtype, .$.any.trunc, .$.scalef)
 	}
 }
 
-.cdfuv.cks.eval = function (x, ..., .ignore.trunc=FALSE)
+.cdfuv.cks.eval = function (x, ...)
 {	. = .THAT ()
-	if (! .ignore.trunc)
-		x = .val.u.uv (x, .$.any.trunc, .$.is.trunc, .$XLIM)
+	x = .val.u.uv (x, .$.any.trunc, .$.is.trunc, .$XLIM)
 	if (.$is.spline)
 		.$spline.function (x)
 	else
-	{	data = .select.bdata (.$.any.trunc, .$data, .$.xpnd)
-		y = .iterate.uv (.cdfuv.cks.eval.scalar, .$is.weighted, .$kernel@F, .$bw, data$n, data$x, data$w, .$.low, u=x)
-		if (! .ignore.trunc)
-		{	if (.$.any.trunc.lower)
-				y = y - .$.const.cdf.lower
-			y = .scale.val (y, .$.any.trunc, .$.scalef)
-		}
-		y
+	{	data = .select.bdata (.$.any.trunc, .$trtype, .$data, .$.xpnd)
+		y = .iterate.uv (.cdfuv.cks.eval.scalar, .$.internal.isw, .$kernel@F, .$bw,
+			data$n, data$x, .$.internalw, .$.low, .$.constv, u=x)
+		if (.$trtype != "local" && .$.any.trunc.lower)
+			y = y - .$.const.cdf.lower
+		.scale.val (y, .$trtype, .$.any.trunc, .$.scalef)
 	}
 }
 
@@ -50,26 +47,15 @@
 .pdfmv.cks.eval = function (x)
 {	. = .THAT ()
 	x = .val.u.mv (.$m, x, .$.any.trunc, .$.is.trunc, .$XLIM)
-	data = .select.bdata (.$.any.trunc, .$data, .$.xpnd)
-	y = .iterate.mv (.pdfmv.cks.eval.scalar, .$is.weighted, .$kernel@f, .$m, .$bw, data$n, data$x, data$w, u=x)
-	.scale.val (y, .$.any.trunc, .$.scalef)
+	.iterate.mv (.pdfmv.cks.eval.scalar, .$.internal.isw, .$kernel@f, .$m, .$bw,
+		.$data$n, .$data$x, .$.internalw, u=x)
 }
 
-.cdfmv.cks.eval = function (x, ..., .ignore.trunc=FALSE)
-{	this = .THIS ()
-	. = .THAT ()
-	if (! .ignore.trunc)
-		x = .val.u.mv (.$m, x, .$.any.trunc, .$.is.trunc, .$XLIM)
-	data = .select.bdata (.$.any.trunc, .$data, .$.xpnd)
-	y = .iterate.mv (.cdfmv.cks.eval.scalar, .$is.weighted, .$kernel@F, .$m, .$bw, data$n, data$x, data$w, .$.low, u=x)
-	if (! .ignore.trunc)
-	{	if (.$.any.trunc.lower)
-		{	for (i in seq_len (nrow (x) ) )
-				y [i] = y [i] - .cdfv.lower.side (this, .$.low, .$.is.trunc.lower, .$m, .$data$xlim, hi = x [i,])
-		}
-		y = .scale.val (y, .$.any.trunc, .$.scalef)
-	}
-	y
+.cdfmv.cks.eval = function (x, ...)
+{	. = .THAT ()
+	x = .val.u.mv (.$m, x, .$.any.trunc, .$.is.trunc, .$XLIM)
+	.iterate.mv (.cdfmv.cks.eval.scalar, .$.internal.isw, .$kernel@F, .$m, .$bw,
+		.$data$n, .$data$x, .$.internalw, .$.low, .$.constv, u=x)
 }
 
 .pdfc.cks.eval = function (x)
@@ -78,27 +64,19 @@
 	if (.$is.spline)
 		.$spline.function (x)
 	else
-	{	data = .select.bdata (.$.any.trunc, .$data, .$.xpnd)
-		y = .iterate.uv (.pdfc.cks.eval.scalar, .$.constant, .$.v, .$M, .$ncon, .$is.weighted, .$kernel@f, .$bw, data$n, data$x, data$w, u=x)
-		.scale.val (y, .$.any.trunc, .$.scalef)
+	{	.iterate.uv (.pdfc.cks.eval.scalar, .$.constant, .$.v, .$M, .$ncon, .$.internal.isw, .$kernel@f, .$bw,
+			.$data$n, .$data$x, .$.internalw, u=x)
 	}
 }
 
-.cdfc.cks.eval = function (x, ..., .ignore.trunc=FALSE)
+.cdfc.cks.eval = function (x)
 {	. = .THAT ()
-	if (! .ignore.trunc)
-		x = .val.u.uv (x, .$.any.trunc, .$.is.trunc [.$m,], .$XLIM [.$m,])
+	x = .val.u.uv (x, .$.any.trunc, .$.is.trunc [.$m,], .$XLIM [.$m,])
 	if (.$is.spline)
 		.$spline.function (x)
 	else
-	{	data = .select.bdata (.$.any.trunc, .$data, .$.xpnd)
-		y = .iterate.uv (.cdfc.cks.eval.scalar, .$.constant, .$.v, .$M, .$ncon, .$is.weighted, .$kernel@F, .$bw, data$n, data$x, data$w, .$.low, u=x)
-		if (! .ignore.trunc)
-		{	if (.$.any.trunc.lower)
-				y = y - .$.const.cdf.lower
-			y = .scale.val (y, .$.any.trunc, .$.scalef)
-		}
-		y
+	{	.iterate.uv (.cdfc.cks.eval.scalar, .$.constant, .$.v, .$M, .$ncon, .$.internal.isw, .$kernel@F, .$bw,
+			.$data$n, .$data$x, .$.internalw, .$.low, .$.constv, u=x)
 	}
 }
 
@@ -112,29 +90,16 @@
 {	. = .THAT ()
 	J = (.$ncon + 1):(.$m)
 	x = .val.u.mv (.$M, x, .$.any.trunc, .$.is.trunc [J,, drop=FALSE], .$XLIM [J,, drop=FALSE])
-	data = .select.bdata (.$.any.trunc, .$data, .$.xpnd)
-	y = .iterate.mv (.pdfc.cks.eval.scalar, .$.constant, .$.v, .$M, .$ncon, .$is.weighted, .$kernel@f, .$bw, data$n, data$x, data$w, u=x)
-	.scale.val (y, .$.any.trunc, .$.scalef)
+	.iterate.mv (.pdfc.cks.eval.scalar, .$.constant, .$.v, .$M, .$ncon, .$.internal.isw, .$kernel@f, .$bw,
+		.$data$n, .$data$x, .$.internalw, u=x)
 }
 
-.cdfmvc.cks.eval = function (x, ..., .ignore.trunc=FALSE)
-{	this = .THIS ()
-	. = .THAT ()
+.cdfmvc.cks.eval = function (x)
+{	. = .THAT ()
 	J = (.$ncon + 1):(.$m)
-	if (! .ignore.trunc)
-		x = .val.u.mv (.$M, x, .$.any.trunc, .$.is.trunc [J,, drop=FALSE], .$XLIM [J,, drop=FALSE])
-	data = .select.bdata (.$.any.trunc, .$data, .$.xpnd)
-	y = .iterate.mv (.cdfc.cks.eval.scalar, .$.constant, .$.v, .$M, .$ncon, .$is.weighted, .$kernel@F, .$bw, data$n, data$x, data$w, .$.low, u=x)
-	if (! .ignore.trunc)
-	{	if (.$.any.trunc.lower)
-		{	for (i in seq_len (nrow (x) ) )
-				y [i] = y [i] - .cdfv.lower.side (this, .$.low, .$.is.trunc.lower, .$M, .$data$xlim [J,, drop=FALSE],
-					hi = x [i,])
-	
-		}
-		y = .scale.val (y, .$.any.trunc, .$.scalef)
-	}
-	y
+	x = .val.u.mv (.$M, x, .$.any.trunc, .$.is.trunc [J,, drop=FALSE], .$XLIM [J,, drop=FALSE])
+	.iterate.mv (.cdfc.cks.eval.scalar, .$.constant, .$.v, .$M, .$ncon, .$.internal.isw, .$kernel@F, .$bw,
+		.$data$n, .$data$x, .$.internalw, .$.low, .$.constv, u=x)
 }
 
 .chqf.cks.eval = function (p)
@@ -156,12 +121,12 @@
 	.$spline.function (p)
 }
 
-.scale.val = function (y, trunc, k)
-{	if (trunc) k * y
+.scale.val = function (y, trtype, trunc, k)
+{	if (trunc && (trtype != "local") ) k * y
 	else y
 }
 
-.select.bdata = function (trunc, data, xpnd)
-{	if (trunc) xpnd
+.select.bdata = function (trunc, trtype, data, xpnd)
+{	if (trunc && trtype == "reflect") xpnd
 	else data
 }

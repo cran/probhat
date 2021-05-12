@@ -1,18 +1,18 @@
-\name{80_mockup_function_objects}
-\alias{Mockup Function Objects}
-\alias{mf.dfh}
-\alias{mf.dFh}
-\alias{mf.dFht}
-\alias{mf.gfh}
-\alias{mf.gFh}
-\alias{mf.gFht}
-\alias{mf.cfh}
-\alias{mf.cFh}
-\alias{mf.cFht}
-\alias{mf.cfh.mv}
-\alias{mf.cFh.mv}
-\alias{mf.chFht}
-\title{Mockup Function Objects}
+\name{80_runtime_function_objects}
+\alias{Runtime Function Objects}
+\alias{ph.dfh.rtf}
+\alias{ph.dFh.rtf}
+\alias{ph.dFht.rtf}
+\alias{ph.gfh.rtf}
+\alias{ph.gFh.rtf}
+\alias{ph.gFht.rtf}
+\alias{ph.cfh.rtf}
+\alias{ph.cFh.rtf}
+\alias{ph.cFht.rtf}
+\alias{ph.cfh.rtf.mv}
+\alias{ph.cFh.rtf.mv}
+\alias{ph.chFht.rtf}
+\title{Runtime Function Objects}
 \description{
 Hard-coded functions, representing (runtime) function objects.
 
@@ -22,29 +22,29 @@ THE RESULTING FUNCTION OBJECTS SHOULD HAVE THE SAME ARGUMENTS AS BELOW.}
 \usage{
 #categorical models
 #(CAT/gMIX)
-mf.gfh (g, \dots, freq=FALSE, n)      #PMF
-mf.gFh (g, \dots, freq=FALSE, n)      #CDF
-mf.gFht (p, \dots, level.names=FALSE) #QF
+ph.gfh.rtf (g, \dots, freq=FALSE, n)      #PMF
+ph.gFh.rtf (g, \dots, freq=FALSE, n)      #CDF
+ph.gFht.rtf (p, \dots, level.names=FALSE) #QF
 
 #other discrete models
 #(DKS)
-mf.dfh (x, \dots, freq=FALSE, n)      #PMF
-mf.dFh (x, \dots, freq=FALSE, n)      #CDF
-mf.dFht (p)                         #QF
+ph.dfh.rtf (x, \dots, freq=FALSE, n)      #PMF
+ph.dFh.rtf (x, \dots, freq=FALSE, n)      #CDF
+ph.dFht.rtf (p)                         #QF
 
 #univariate continuous models
 #(CKS/EL/xMIX, UV/C)
-mf.cfh (x)                          #PDF
-mf.cFh (x)                          #CDF
-mf.cFht (p)                         #QF
+ph.cfh.rtf (x)                          #PDF
+ph.cFh.rtf (x)                          #CDF
+ph.cFht.rtf (p)                         #QF
 
 #multivariate continuous models
 #(CKS, MV/MVC)
-mf.cfh.mv (x)                       #PDF
-mf.cFh.mv (x)                       #CDF
+ph.cfh.rtf.mv (x)                       #PDF
+ph.cFh.rtf.mv (x)                       #CDF
 
 #chained quantile functions
-mf.chFht (p)
+ph.chFht.rtf (p)
 }
 \arguments{
 \item{g, x}{

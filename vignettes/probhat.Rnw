@@ -48,8 +48,8 @@ set.seed (1)
 \newcommand{\cks}{CKS}
 \newcommand{\cat}{CAT}
 \newcommand{\el}{EL}
-\newcommand{\phgmix}{gMIXp}
-\newcommand{\phxmix}{xMIXp}
+\newcommand{\phgmix}{gMIX}
+\newcommand{\phxmix}{xMIX}
 
 \newcommand{\pmfuvdks}{PMF\textsubscript{(UV)}$\sim$DKS}
 \newcommand{\cdfuvdks}{CDF\textsubscript{(UV)}$\sim$DKS}
@@ -85,9 +85,9 @@ set.seed (1)
 \newcommand{\cdfcxmix}{CDF\textsubscript{(C)}$\sim$xMIX}
 \newcommand{\qfcxmix}{QF\textsubscript{(C)}$\sim$xMIX}
 
-\stitle {probhat}{0.4.0}{Multivariate Generalized\\Kernel Smoothing\\and\\Related Statistical Methods}
+\stitle {probhat}{0.4.1}{Multivariate Generalized\\Kernel Smoothing\\and\\Related Statistical Methods}
 
-\sabstract {Probability mass functions (PMFs), probability density functions (PDFs), cumulative distribution functions (CDFs) and quantile functions, mainly via (optionally bounded/truncated) kernel smoothing. In the continuous case, there's support for univariate, multivariate and conditional distributions, including distributions that are both multivariate and conditional. These generalize methods from the book "Kernel Smoothing", Wand and Jones (1995). Also, supports categorical distributions, mixed conditional distributions (with mixed input types) and smooth empirical-like distributions, some of which, can be used for statistical classification. There are extensions for computing distance matrices (between distributions), multivariate probabilities, multivariate random numbers, moment-based statistics and mode estimates.}
+\sabstract {Probability mass functions (PMFs), probability density functions (PDFs), cumulative distribution functions (CDFs) and quantile functions, mainly via (optionally bounded/truncated) kernel smoothing. In the continuous case, there's support for univariate, multivariate and conditional distributions, including distributions that are both multivariate and conditional. Refer to the book "Kernel Smoothing" by Wand and Jones (1995), whose methods are generalized by the methods here. Also, supports categorical distributions, mixed conditional distributions (with mixed input types) and smooth empirical-like distributions, some of which, can be used for statistical classification. There are extensions for computing distance matrices (between distributions), multivariate probabilities, multivariate random numbers, moment-based statistics and mode estimates.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section* {Introduction}
@@ -122,17 +122,17 @@ Often the goal of kernel smoothing is simply to plot the distribution, as an exp
 
 Conditional categorical distributions with mixed input types, can be used for statistical classification purposes.
 
-Also, there are extensions for computing probabilities, random number generation and parameter-like estimation, including moment-based, order-based, robust-based and mode estimates.
+Also, there are extensions for computing distance matrices (between distributions), computing probabilities, random number generation and parameter-like estimation, including moment-based and mode estimates.
 
 Notes:
 \begin{itemize}
 \itemsep -0.15cm
 	\item This package is based on S3-based self-referencing function objects.\\
 		(Which are equivalent to the \{d, p, q, r\} approach used in R's stats package).
-	\item IT'S POSSIBLE THESE MAY CHANGE TO S4-BASED FUNCTION OBJECTS, IN THE NEAR FUTURE.\\
+	\item IT'S LIKELY THAT THESE MAY CHANGE TO S4-BASED FUNCTION OBJECTS, IN THE NEAR FUTURE.\\
 		(In principle, you should not access attributes/slots, directly).
 	\item Bivariate/trivariate plotting functions use the barsurf package, which uses the base graphics system.
-	\item Variable names are taken from column names or list names.
+	\item Variable names are taken from column names (most cases) or list names (categorical distributions).
 	\item This package gives precedence to vectors and matrices, over lists and data frames.\\
 		(One partial exception is categorical data which allow a list of integer/factor/character vectors).
 	\item This vignette contains a small amount of non-visible R code, to produce multi-panel plots.
@@ -142,10 +142,8 @@ Currently, there are some limitations:
 \begin{itemize}
 \itemsep -0.15cm
 	\item Bandwidth selection methods are simplistic.
-	\item Parameter estimates and distribution sets, need substantial improvement.
+	\item Parameter estimates, mixed conditional models (with mixed input), distribution sets and random number generation need improvement.
 \end{itemize}
-
-These are high priorities for future updates, which may also support categorical smoothing.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section* {Preliminary Code}
@@ -451,13 +449,13 @@ Currently, \phxmix\ models (and \phgmix\ models, if there are both categorical a
 
 \begin {center}
 <<fig=TRUE, width=4.75, height=3>>=
-fh1a.gmix <- pmfc.gmix (species, sepal.length,
+fh1a.gmix <- ph4.pmfc.gmix (species, sepal.length,
     conditions = c (sepal.length=5.5) )
 plot (fh1a.gmix,
     main="Conditional Distribution of Iris Species\n(sepal.length=5.5)")
 @
 <<fig=TRUE, width=4.75, height=3>>=
-fh1b.gmix <- pmfc.gmix (species, sepal.length,
+fh1b.gmix <- ph4.pmfc.gmix (species, sepal.length,
     conditions = c (sepal.length=6.5) )
 plot (fh1b.gmix,
     main="Conditional Distribution of Iris Species\n(sepal.length=6.5)")
@@ -469,7 +467,7 @@ We can use multiple categorical or continuous variables:\\
 
 \begin {center}
 <<fig=TRUE, width=4.75, height=3>>=
-fh2.gmix <- pmfc.gmix (species, cbind (sepal.length, sepal.width),
+fh2.gmix <- ph4.pmfc.gmix (species, cbind (sepal.length, sepal.width),
     conditions = c (sepal.length=6, sepal.width=3) )
 plot (fh2.gmix,
     main = paste (
@@ -493,44 +491,43 @@ ph.mode (fh2.gmix, level.names=TRUE)
 The distribution set objects, should be wrapped inside a call to \tmu{as.list}, with the exception of using functions specifically designed for them.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Distribution Sets\\(And Distance Matrices)}
+\section* {Distribution Sets}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Here, a distribution set is a set of one or more probability distributions.
 
 Currently, there are two types:
 \begin{itemize}
-	\item \textbf {Categorical Set}\\One univariate probability distribution for each (categorical) level, out of many (categorical) levels.
+	\item \textbf {Categorical Set}\\One probability distribution for each (categorical) level, out of many (categorical) levels.
 	\item \textbf {Marginal Set}\\One univariate probability distribution for each variable, out of many variables.
+	\item \textbf {Conditional Set}\\One probability distribution for each set of conditions.\\
+		(Refer to the constructor for the conditional CKS models).
 \end{itemize}
 
 Lets construct \pdfuvcks\ models of sepal length, grouped by species:
 
 <<>>=
-fh.gset <- pdfuv.gset.cks (species, sepal.length)
+gset <- ph4.pdfuv.gset.cks (species, sepal.length)
 @
 
 \begin {center}
 <<fig=TRUE, width=4.75, height=3>>=
-plot (fh.gset, main="Density Estimates of Sepal Length\n(grouped by species)")
+plot (gset, main="Density Estimates of Sepal Length\n(grouped by species)")
 @
 \end {center}
 
 Lets construct marginal \qfuvel\ objects:
 
 <<>>=
-Fht.mset = qfuv.mset.el (trees2)
+mset = ph4.qfuv.mset.el (trees2)
 @
 
 \begin {center}
 <<fig=TRUE, width=4.75, height=4.75>>=
-plot (Fht.mset, nr=2, nc=2)
+plot (mset, nr=2, nc=2)
 @
 \end {center}
 
-Also, we can compute a distance (or dissimilarity) matrix based on the gset object:
-<<>>=
-pdist (fh.gset)
-@
+Note that gset objects can be used to compute distance matrices, discussed in the section after the next.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section* {Multivariate Probabilities}
@@ -567,6 +564,68 @@ pwith (cFh3, xlim=xlim)
 @
 
 Note that it's possible to compute multiple regions at once by making a and b matrices with each row representing one region. Also note that currently, variables names are ignored, so they must be in the same order as the variables used to construct the CDF.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {Distance Matrices}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+We can compute a distance (or dissimilarity) matrix based on a gset object:
+
+<<>>=
+gset1a <- ph4.pdfuv.gset.cks (species, sepal.length)
+gset1b <- ph4.pdfuv.gset.cks (species, sepal.width)
+gset2 <- ph4.pdfmv.gset.cks (species, cbind (sepal.length, sepal.width) )
+dists1a <- pdist (gset1a)
+dists1b <- pdist (gset1b)
+dists2 <- pdist (gset2)
+@
+
+<<>>=
+names <- names (gset2)
+cols <- c ("red", "blue", "darkgreen")
+main <- paste0 (substring (names, 1, 4), " (", cols, ")", collapse=", ")
+I1 <- (names [1] == species [[1]])
+I2 <- (names [2] == species [[1]])
+I3 <- (names [3] == species [[1]])
+@
+
+\begin {center}
+<<fig=TRUE, width=4.75, height=4.75>>=
+plot (gset2 [[1]], contour.color = cols [1],
+    main=main,
+    xlim = range (sepal.length), ylim = range (sepal.width),
+    heatmap=FALSE)
+plot (gset2 [[2]], contour.color = cols [2],
+    add=TRUE, heatmap=FALSE)
+plot (gset2 [[3]], contour.color = cols [3],
+    add=TRUE, heatmap=FALSE)
+points (sepal.length [I1], sepal.width [I1], pch=16, col = cols [1])
+points (sepal.length [I2], sepal.width [I2], pch=16, col = cols [2])
+points (sepal.length [I3], sepal.width [I3], pch=16, col = cols [3])
+@
+\end {center}
+
+We can see from the above plot that versicolor and virginica have the closest distributions.
+
+The following numerical output is consistent with that:
+
+<<>>=
+#distance matrix
+#(both variables)
+dists2
+#pairs, ranked
+ph4.rdist (dists2)  #both
+ph4.rdist (dists1a) #length
+ph4.rdist (dists1b) #width
+
+@
+
+The details are discussed in the help file for pdist.
+
+Note that these methods are relatively new.
+
+I can not give any guarantee of optimality.\\
+(This applies to the whole package, but in particular to these functions).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section* {Chained Quantile Functions\\(And Multivariate Random Number Generation)}
@@ -672,9 +731,9 @@ ntiles (8, cFht, prob=TRUE)
 An \qfuvel\ object is automatically created, if a numeric vector is used, hence the last two results should be identical (for unique input values) or almost identical (for non-unique input values).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection* {Robust-Based Statistics}
+\subsection* {Quantile-Based Statistics}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-We can compute robust-based summary statistics, using the \tmu{ph.median}, \tmu{ph.quantile} and \tmu{iqr} functions.
+We can compute quantile-based statistics, using the \tmu{ph.median}, \tmu{ph.quantile} and \tmu{iqr} functions.
 
 All of which require a numeric vector, quantile function, or an object than can be coerced to a numeric vector.
 
@@ -783,7 +842,7 @@ Also, this package uses the following R packages, or has been influenced by them
 
 \indf Genz, A., Bretz, F., Miwa, T., Mi, X. \& Hothorn, T.
 
-\ind \tmu {kubik: Cubic Hermite Splines and Related Optimization Methods}
+\ind \tmu {kubik: Cubic Hermite Splines and Related Root Finding Methods}
 
 \indf Spurdle, A.
 
@@ -935,7 +994,7 @@ In the bounded case, the model range is the same except that it is truncated, if
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Appendix C:\\Discrete Kernel Smoothing Formulae}
+\section* {Appendix C:\\Discrete Kernel Smoothing Formulae, and Related Notes}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Discrete kernels (without standardized intervals), take the form:
@@ -971,11 +1030,13 @@ w_i = \frac {h_i}{\sum_i h_i}
 
 And where $\mathbf {x}^*$ is a vector of (integer-valued) bins and $\mathbf {h}$ is a vector of frequencies, both of which, are of length $n$, and $i \in [1, n]$.
 
-If truncated discrete smoothing is required, then (a subset of) the data is reflected about the truncation bins.
+If truncated discrete smoothing is required, then the data is reflected about the truncation bins.
+
+This truncated algorithm may change in future, to match the continuous case, refer to the end of the next section.
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section* {Appendix D:\\Continuous Kernel Smoothing Formulae}
+\section* {Appendix D:\\Continuous Kernel Smoothing Formulae, and Related Notes}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Continuous kernels (with standardized intervals), take the form:
 \begin {align*}
@@ -1016,10 +1077,7 @@ Multivariate PDFs and CDFs can be computed, as follows:
 Where $\mathbf{bw}$ is a bandwidth vector, $\mathbf{x}^*$ is a matrix with $n$ rows (observations) and $m$ columns (variables), and $\mathbf{x}$ is a vector of points on the x-plane, where the function is evaluated.
 
 Continuous PDFs use the ratio of two multivariate expressions, with the n term cancelling out.\\
-Continuous CDFs are similiar, but rather than numerically integrate the ratio of two multivariate expressions, the top expression is modified to produce a hybrid algorithm between the PDF and CDF algorithms.
-
-If truncated continuous smoothing is required, then (a subset of) the data is reflected about the truncation points.\\
-This is done is such a way, that there's a maximum of three times n, regardless of the number of variables.
+Continuous CDFs are similar, but rather than numerically integrate the ratio of two multivariate expressions, the top expression is modified to produce a hybrid algorithm between the PDF and CDF algorithms.
 
 Weighted versions of these formulae are created by substituting:
 \begin {equation*}
@@ -1035,6 +1093,16 @@ Subject to:
 \begin {equation*}
 \sum_i w_i = 1
 \end {equation*}
+
+In the univariate case, there are three options for truncated kernel smoothing, simple, local (the default) and reflect.
+
+In the multivariate case, there's only the local option.
+
+In the simple truncation algorithm, it computes the area inside the truncation points. For the PDF, initial density values (taken from the untruncated fit) are multiplied by a scaling factor, which is the reciprocal of the inside area. For the CDF, the approach is the same, except that a lower limit probability value (also taken the untruncated fit) is subtracted from the initial probability values prior to scaling.
+
+In the local truncation algorithm, there's a vector of scaling factors, and a matrix of offsets (for subtraction). This is designed to emulate the effect of locally truncating the kernels themselves. Currently, in the conditional case, only data related to random variables (not variables used in conditions) is  used to compute the scaling factors and the offsets.
+
+The reflect algorithm is the same as the simple algorithm, except the the data is reflected about the truncation points.
 
 
 \newpage

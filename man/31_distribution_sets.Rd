@@ -1,40 +1,39 @@
 \name{31_distribution_sets}
 \alias{Distribution Sets}
 \alias{cset}
-\alias{pdfuv.gset.cks}
-\alias{cdfuv.gset.cks}
-\alias{qfuv.gset.cks}
-\alias{cdfuv.gset.el}
-\alias{qfuv.gset.el}
-\alias{pdfuv.mset.cks}
-\alias{cdfuv.mset.cks}
-\alias{qfuv.mset.cks}
-\alias{cdfuv.mset.el}
-\alias{qfuv.mset.el}
-\alias{pdfmv.gset.cks}
+\alias{ph4.pdfuv.gset.cks}
+\alias{ph4.cdfuv.gset.cks}
+\alias{ph4.qfuv.gset.cks}
+\alias{ph4.cdfuv.gset.el}
+\alias{ph4.qfuv.gset.el}
+\alias{ph4.pdfuv.mset.cks}
+\alias{ph4.cdfuv.mset.cks}
+\alias{ph4.qfuv.mset.cks}
+\alias{ph4.cdfuv.mset.el}
+\alias{ph4.qfuv.mset.el}
+\alias{ph4.pdfmv.gset.cks}
 \title{Distribution Sets}
 \description{
 	Sets of distributions.\cr
 	Note that distributions sets can also be produced by conditional \link{CKS} models.\cr\cr
-	NOTE THAT THESE OBJECTS ARE SUBJECT TO CHANGE, AND HAVE HAD LIMITED TESTING.\cr
-	NOTE THAT as.list SHOULD BE CALLED ON THE RESULTING OBJECTS, UNLESS USED WITH PLOTTING FUNCTIONS.}
+	NOTE THAT THESE OBJECTS ARE SUBJECT TO CHANGE, AND HAVE HAD LIMITED TESTING.}
 \usage{
 #categorical sets
 #(grouped by a categorical variable)
-pdfuv.gset.cks (g, x, \dots)
-cdfuv.gset.cks (g, x, \dots)
-qfuv.gset.cks (g, x, \dots)
-cdfuv.gset.el (g, x, \dots)
-qfuv.gset.el (g, x, \dots)
+ph4.pdfuv.gset.cks (g, x, \dots)
+ph4.cdfuv.gset.cks (g, x, \dots)
+ph4.qfuv.gset.cks (g, x, \dots)
+ph4.cdfuv.gset.el (g, x, \dots)
+ph4.qfuv.gset.el (g, x, \dots)
 
 #marginal sets
-pdfuv.mset.cks (x, \dots, bw, smoothness=1)
-cdfuv.mset.cks (x, \dots, bw, smoothness=1)
-qfuv.mset.cks (x, \dots, bw, smoothness=1)
-cdfuv.mset.el (x, \dots)
-qfuv.mset.el (x, \dots)
+ph4.pdfuv.mset.cks (x, \dots, bw, smoothness=1)
+ph4.cdfuv.mset.cks (x, \dots, bw, smoothness=1)
+ph4.qfuv.mset.cks (x, \dots, bw, smoothness=1)
+ph4.cdfuv.mset.el (x, \dots)
+ph4.qfuv.mset.el (x, \dots)
 
-pdfmv.gset.cks (g, x, \dots)
+ph4.pdfmv.gset.cks (g, x, \dots)
 }
 \arguments{
 \item{g}{A character vector, with the same length as x.\cr Or an object which can be coerced to such a vector.\cr If a list, its first element is used.}
@@ -59,16 +58,15 @@ These functions construct distribution set objects, which are lists of probabili
 \examples{
 prep.ph.data ()
 
-gs <- pdfuv.gset.cks (species, sepal.length)
-ms <- qfuv.mset.el (trees2)
+gs <- ph4.pdfuv.gset.cks (species, sepal.length)
+ms <- ph4.qfuv.mset.el (trees2)
 
+names (gs)
 plot (gs)
 plot (ms, nr=2, nc=2)
 
 #distance matrix
 pdist (gs)
 
-#please wrap inside as.list, to use each object 
-gs <- as.list (gs)
 plot (gs [[1]])
 }

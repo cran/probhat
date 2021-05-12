@@ -27,7 +27,7 @@ Refer to the vignette for more information.}
 \value{
 Self-referencing function objects.
 
-Refer to \link{Mockup Function Objects}
+Refer to \link{Runtime Function Objects}
 }
 \references{Refer to the vignette for an overview, references and better examples.}
 \seealso{

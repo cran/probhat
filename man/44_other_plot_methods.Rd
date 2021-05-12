@@ -22,6 +22,6 @@
 \examples{
 prep.ph.data ()
 
-plot (pdfuv.gset.cks (species, sepal.length) )
-plot (qfuv.mset.el (trees2), nr=2, nc=2)
+plot (ph4.pdfuv.gset.cks (species, sepal.length) )
+plot (ph4.qfuv.mset.el (trees2), nr=2, nc=2)
 }

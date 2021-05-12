@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2018 to 2021
+#Copyright (C), Abby Spurdle, 2019 to 2021
 
 #This program is distributed without any warranty.
 
@@ -153,7 +153,7 @@ ph.mode = function (sf, infv=FALSE, ..., level.names=FALSE, freq=FALSE, n)
 
 ph.modes = function (sf, infv=FALSE)
 {	if (is.phspline (sf) )
-	{	x = chs.argmaxs (sf %$% "spline.function")
+	{	x = argmaxs.chs (sf %$% "spline.function")
 		if (infv)
 			sf (x)
 		else

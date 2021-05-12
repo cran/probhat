@@ -1,5 +1,5 @@
 #probhat: Multivariate Generalized Kernel Smoothing and Related Statistical Methods
-#Copyright (C), Abby Spurdle, 2018 to 2021
+#Copyright (C), Abby Spurdle, 2019 to 2021
 
 #This program is distributed without any warranty.
 
@@ -33,8 +33,6 @@
 	x = cbind (x)
 	for (j in 1:m)
 	{	xsub = x [group.by == ss [j],, drop=FALSE]
-		if (ncol (xsub) == 1)
-			colnames (xsub) = ss [j]
 		pds [[j]] = constructor (xsub, ...)
 	}
 	.distribution.set.2 (m, pds, "ph4.gset", .varname (x), ss)
@@ -64,20 +62,20 @@
 	.distribution.set (m, pds, "ph4.mset") 
 }
 
-pdfuv.gset.cks = function (g, x, ...)
+ph4.pdfuv.gset.cks = function (g, x, ...)
 	.EXTEND (.gset (pdfuv.cks, g, x, ...), "ph4.pdfuv.gset.cks")
-cdfuv.gset.cks = function (g, x, ...) .gset (cdfuv.cks, g, x, ...)
-qfuv.gset.cks = function (g, x, ...) .gset (qfuv.cks, g, x, ...)
-cdfuv.gset.el = function (g, x, ...) .gset (cdfuv.el, g, x, ...)
-qfuv.gset.el = function (g, x, ...) .gset (qfuv.el, g, x, ...)
+ph4.cdfuv.gset.cks = function (g, x, ...) .gset (cdfuv.cks, g, x, ...)
+ph4.qfuv.gset.cks = function (g, x, ...) .gset (qfuv.cks, g, x, ...)
+ph4.cdfuv.gset.el = function (g, x, ...) .gset (cdfuv.el, g, x, ...)
+ph4.qfuv.gset.el = function (g, x, ...) .gset (qfuv.el, g, x, ...)
 
-pdfuv.mset.cks = function (x, ..., bw, smoothness=1) .mset.cks (pdfuv.cks, x, bw, smoothness, ...)
-cdfuv.mset.cks = function (x, ..., bw, smoothness=1) .mset.cks (cdfuv.cks, x, bw, smoothness, ...)
-qfuv.mset.cks = function (x, ..., bw, smoothness=1) .mset.cks (qfuv.cks, x, bw, smoothness, ...)
-cdfuv.mset.el = function (x, ...) .mset.el (cdfuv.el, x, ...)
-qfuv.mset.el = function (x, ...) .mset.el (qfuv.el, x, ...)
+ph4.pdfuv.mset.cks = function (x, ..., bw, smoothness=1) .mset.cks (pdfuv.cks, x, bw, smoothness, ...)
+ph4.cdfuv.mset.cks = function (x, ..., bw, smoothness=1) .mset.cks (cdfuv.cks, x, bw, smoothness, ...)
+ph4.qfuv.mset.cks = function (x, ..., bw, smoothness=1) .mset.cks (qfuv.cks, x, bw, smoothness, ...)
+ph4.cdfuv.mset.el = function (x, ...) .mset.el (cdfuv.el, x, ...)
+ph4.qfuv.mset.el = function (x, ...) .mset.el (qfuv.el, x, ...)
 
-pdfmv.gset.cks = function (g, x, ...)
+ph4.pdfmv.gset.cks = function (g, x, ...)
 	.EXTEND (.gset (pdfmv.cks, g, x, ...), "ph4.pdfmv.gset.cks")
 
 as.list.dset = function (x, ...)

@@ -1,11 +1,11 @@
 \name{23_mixed_conditional}
 \alias{Conditional Distributions with Mixed Input Types}
-\alias{pmfc.gmix}
-\alias{cdfc.gmix}
-\alias{qfc.gmix}
-\alias{pdfc.xmix}
-\alias{cdfc.xmix}
-\alias{qfc.xmix}
+\alias{ph4.pmfc.gmix}
+\alias{ph4.cdfc.gmix}
+\alias{ph4.qfc.gmix}
+\alias{ph4.pdfc.xmix}
+\alias{ph4.cdfc.xmix}
+\alias{ph4.qfc.xmix}
 \title{Conditional Distributions with Mixed Categorical-Continuous Input}
 \description{
 	Fit conditional categorical or continuous distributions with mixed categorical-continuous input.\cr
@@ -19,14 +19,14 @@
 }
 \usage{
 #conditional categorical
-pmfc.gmix (g, x, \dots, conditions, warning=TRUE, w)
-cdfc.gmix (g, x, \dots, conditions, warning=TRUE, w)
-qfc.gmix (g, x, \dots, conditions, warning=TRUE, w)
+ph4.pmfc.gmix (g, x, \dots, conditions, warning=TRUE, w)
+ph4.cdfc.gmix (g, x, \dots, conditions, warning=TRUE, w)
+ph4.qfc.gmix (g, x, \dots, conditions, warning=TRUE, w)
 
 #conditional continuous
-pdfc.xmix (g, x, \dots, conditions, warning=TRUE, w)
-cdfc.xmix (g, x, \dots, conditions, warning=TRUE, w)
-qfc.xmix (g, x, \dots, conditions, warning=TRUE, w)
+ph4.pdfc.xmix (g, x, \dots, conditions, warning=TRUE, w)
+ph4.cdfc.xmix (g, x, \dots, conditions, warning=TRUE, w)
+ph4.qfc.xmix (g, x, \dots, conditions, warning=TRUE, w)
 }
 \arguments{
 \item{g}{Integer/factor/character vector of groups.\cr Also, can be a named list of one or more such vectors.}
@@ -55,7 +55,7 @@ Note that categorical and continuous variables need different names.
 \value{
 Self-referencing function objects.
 
-Refer to \link{Mockup Function Objects}
+Refer to \link{Runtime Function Objects}
 
 Except:\cr
 The constructors for conditional distributions, return NULL, if there's no observations within the conditional window.\cr
@@ -82,9 +82,9 @@ e.g. If unique g values were 10, 11 and 12, in contrast to 1, 2 and 3.
 \examples{
 prep.ph.data ()
 
-fh.gmix <- pmfc.gmix (species, cbind (sepal.length, sepal.width),
+fh.gmix <- ph4.pmfc.gmix (species, cbind (sepal.length, sepal.width),
     conditions = c (sepal.length=6, sepal.width=3) )
-Fht.gmix <- qfc.gmix (species, cbind (sepal.length, sepal.width),
+Fht.gmix <- ph4.qfc.gmix (species, cbind (sepal.length, sepal.width),
     conditions = c (sepal.length=6, sepal.width=3) )
 
 plot (fh.gmix)
